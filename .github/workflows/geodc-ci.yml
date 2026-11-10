@@ -1,0 +1,220 @@
+name: geoDC CI
+
+# geoDC has no CI of its own. This runs its Format and Build and test checks from the harness against
+# a geoDC branch, tag or commit: nightly against dev, and by hand (Actions > geoDC CI > Run workflow,
+# or the GitHub API) for a pull request's branch. The result is posted on the geoDC commit as the
+# harness/geodc-ci status when the token allows it.
+#
+# Needs the GEODC_TOKEN secret: a fine-grained token on the geoDC repository with Contents: read
+# (Commit statuses: write to post the status). The GEODC_REPOSITORY variable names the repository
+# (owner/name); it defaults to the one this harness was built for.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: geoDC branch, tag or commit to check
+        required: true
+        default: dev
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: read
+  # The test reporter publishes results as a check run on this harness run.
+  checks: write
+
+concurrency:
+  group: geodc-ci-${{ inputs.ref || 'dev' }}
+  cancel-in-progress: true
+
+env:
+  GEODC_REPOSITORY: ${{ vars.GEODC_REPOSITORY || 'snt0/geodc' }}
+  GEODC_REF: ${{ inputs.ref || 'dev' }}
+  STATUS_CONTEXT: harness/geodc-ci
+
+jobs:
+  resolve:
+    name: Resolve geoDC commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+    steps:
+      - name: Check out geoDC
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GEODC_REPOSITORY }}
+          ref: ${{ env.GEODC_REF }}
+          token: ${{ secrets.GEODC_TOKEN }}
+          path: geodc
+
+      - id: sha
+        run: echo "sha=$(git -C geodc rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Post pending status
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GEODC_TOKEN }}
+          SHA: ${{ steps.sha.outputs.sha }}
+          TARGET: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: >-
+          gh api "repos/$GEODC_REPOSITORY/statuses/$SHA"
+          -f state=pending -f context="$STATUS_CONTEXT"
+          -f description="Format and Build and test running" -f target_url="$TARGET"
+
+  format:
+    name: Format
+    needs: resolve
+    # dotnet format needs no Windows: the solution loads on Linux with EnableWindowsTargeting.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: geodc
+    steps:
+      - name: Check out geoDC
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GEODC_REPOSITORY }}
+          ref: ${{ needs.resolve.outputs.sha }}
+          token: ${{ secrets.GEODC_TOKEN }}
+          path: geodc
+          # Full history is required for Nerdbank.GitVersioning, which runs in every project build.
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: geodc/global.json
+
+      - name: Verify whitespace formatting
+        run: dotnet format whitespace --folder --verify-no-changes
+
+      # Every package version is central, so the key ignores project files.
+      - name: Restore NuGet cache
+        id: nuget-cache
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('geodc/global.json', 'geodc/dotnet-tools.json', 'geodc/nuget.config', 'geodc/Directory.Packages.props', 'geodc/Directory.Build.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore geoDC.slnx
+
+      # dotnet format loads the analyzers from their Debug output, so they must exist first.
+      - name: Build source generators
+        run: |
+          dotnet build src/geoDC.App.UI.Generators/geoDC.App.UI.Generators.csproj --configuration Debug --no-restore
+          dotnet build src/geoDC.App.Text.Generators/geoDC.App.Text.Generators.csproj --configuration Debug --no-restore
+
+      # Roslyn never reports these in a build, so GeoDCStrictCodeStyle cannot fail on them:
+      # IDE0003/IDE0009 (this. qualification), IDE0049 (predefined type names), IDE1006 (naming).
+      - name: Verify build-excluded style rules
+        run: >-
+          dotnet format style geoDC.slnx --no-restore --verify-no-changes
+          --diagnostics IDE0003 IDE0009 IDE0049 IDE1006
+
+      - name: Verify XAML formatting
+        shell: pwsh
+        run: |
+          dotnet tool restore
+          ./dev/format-xaml.ps1 -Check
+
+      # Saved from dev runs only, so every run of another ref can read it.
+      - name: Save NuGet cache
+        if: steps.nuget-cache.outputs.cache-hit != 'true' && env.GEODC_REF == 'dev'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('geodc/global.json', 'geodc/dotnet-tools.json', 'geodc/nuget.config', 'geodc/Directory.Packages.props', 'geodc/Directory.Build.props') }}
+
+  test:
+    name: Build and test
+    needs: resolve
+    runs-on: windows-2022
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: geodc
+    steps:
+      - name: Check out geoDC
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GEODC_REPOSITORY }}
+          ref: ${{ needs.resolve.outputs.sha }}
+          token: ${{ secrets.GEODC_TOKEN }}
+          path: geodc
+          fetch-depth: 0
+          # The brand SVGs live in Git LFS; the app and the report template both ship them.
+          lfs: true
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: geodc/global.json
+
+      - name: Restore NuGet cache
+        id: nuget-cache
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('geodc/global.json', 'geodc/dotnet-tools.json', 'geodc/nuget.config', 'geodc/Directory.Packages.props', 'geodc/Directory.Build.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore geoDC.slnx
+
+      - name: Build
+        # GeoDCStrictCodeStyle turns the .editorconfig style warnings into errors (Directory.Build.props).
+        run: dotnet build geoDC.slnx --configuration Release --no-restore -p:GeoDCStrictCodeStyle=true
+
+      - name: Test
+        id: test
+        run: >-
+          dotnet test geoDC.slnx --configuration Release --no-restore --no-build
+          --logger trx --results-directory TestResults
+
+      - name: Report test results
+        if: ${{ always() && (steps.test.outcome == 'success' || steps.test.outcome == 'failure') }}
+        continue-on-error: true
+        uses: dorny/test-reporter@v2
+        with:
+          name: geoDC test results
+          path: geodc/TestResults/*.trx
+          reporter: dotnet-trx
+          fail-on-error: false
+
+      - name: Save NuGet cache
+        if: steps.nuget-cache.outputs.cache-hit != 'true' && env.GEODC_REF == 'dev'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('geodc/global.json', 'geodc/dotnet-tools.json', 'geodc/nuget.config', 'geodc/Directory.Packages.props', 'geodc/Directory.Build.props') }}
+
+  report:
+    name: Report to geoDC
+    needs: [resolve, format, test]
+    if: ${{ always() && needs.resolve.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Post final status
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GEODC_TOKEN }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+          STATE: ${{ (needs.format.result == 'success' && needs.test.result == 'success') && 'success' || 'failure' }}
+          DESCRIPTION: 'Format: ${{ needs.format.result }}, Build and test: ${{ needs.test.result }}'
+          TARGET: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: >-
+          gh api "repos/$GEODC_REPOSITORY/statuses/$SHA"
+          -f state="$STATE" -f context="$STATUS_CONTEXT"
+          -f description="$DESCRIPTION" -f target_url="$TARGET"

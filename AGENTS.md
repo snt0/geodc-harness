@@ -27,7 +27,7 @@ Shared guidance for coding agents working on geoDC from this harness. Keep this 
 - Read `docs/cloud-sessions.md` before changing the cloud environment setup script; read `docs/cloud-sessions-claude.md` before changing the `.claude/hooks` scripts. Both are in this harness.
 - Read the relevant page of `geodc/docs/ui/` before changing shared controls (`controls.md`), themes, typed resources or foreground behavior (`theming.md`), data grids (`data-grids.md`), containers and panels (`layout.md`), notifications, feedback or application-state behaviour (`feedback.md`), popup infrastructure (`popups.md`), or the Sample gallery (`sample-gallery.md`).
 - Review `geodc/docs/code-vocabulary.md` before introducing or broadly renaming role suffixes.
-- Read `geodc/docs/github-practices.md` before filing issues, applying labels, or opening pull requests.
+- Read `docs/github-practices.md` before filing issues, applying labels, or opening pull requests.
 
 ## Agent skills
 
@@ -47,6 +47,7 @@ The rules that apply to people and agents alike live in the human docs. Follow t
 
 ## Build and test in agent sessions
 
+- geoDC has no CI of its own. Before asking for a merge, run the checks in `geodc/docs/codebase.md` > Checks before merging and releases that your platform allows, and run the harness's `geoDC CI` workflow on the branch (`docs/github-practices.md` > CI); report both under Testing.
 - The commands are in `geodc/docs/codebase.md` > Build, Test and Run. Run them inside `geodc/`, or from the harness root with the paths prefixed (`dotnet build geodc/geoDC.slnx`, `dotnet test geodc/tests/geoDC.Domain.Tests`).
 - On Linux, `dotnet test geodc/geoDC.slnx` aborts on the Windows-only projects (no `Microsoft.WindowsDesktop.App` runtime). Test the affected projects one by one; `docs/cloud-sessions.md` lists which run.
 - `geodc/tools/geoDC.ReportCli` runs on Linux, so use it to check report, template or reporting-data changes end to end (`geodc/docs/reporting.md` > Headless reports).
@@ -78,14 +79,14 @@ Cloud agent sessions (Claude Code, Codex) run in a disposable Ubuntu VM holding 
 - Agent branches are named for the agent and the change: `claude/<issue-or-feature>` for Claude Code and `codex/<issue-or-feature>` for Codex (lowercase, hyphenated). Include the issue number whenever the work has an issue, e.g. `claude/issue-123-fingerprint-coverage`.
 - This naming overrides any branch the harness or session instructions assign. Cloud sessions start on a generated branch (e.g. `ccr-cb9479d3-9qhhg6`); run `git switch -c claude/<issue-or-feature>` (or `codex/...`) before the first push. The push guard checks the branch before the command runs, so switch and push in separate commands. In a Claude Code worktree, pass the name as `EnterWorktree`'s `name`.
 - Open geoDC pull requests into geoDC's `dev`, unless they stack, and harness pull requests into the harness's `main`.
-- Stack dependent work: when work builds on an unmerged branch (yours or another session's), branch from it and target its pull request. Check before branching and before opening; `geodc/docs/github-practices.md` > Branches and pull requests covers retargeting after the lower one merges.
-- Keep each pull request to one purpose and fill in `geodc/.github/pull_request_template.md` for geoDC.
+- Stack dependent work: when work builds on an unmerged branch (yours or another session's), branch from it and target its pull request. Check before branching and before opening; `docs/github-practices.md` > Branches and pull requests covers retargeting after the lower one merges.
+- Keep each pull request to one purpose and fill in `docs/pull-request-template.md` for geoDC.
 - Issues live in `snt0/geodc`, for harness work too. Search open issues before filing; extend or link an existing issue rather than duplicating it. Use the existing labels; do not create, rename, or delete them.
-- `geodc/docs/github-practices.md` has the full issue, label, and pull request conventions.
+- `docs/github-practices.md` has the full issue, label, and pull request conventions.
 
 ## Issue tracking
 
-The issue body is the record of what is asked and what is done; `geodc/docs/github-practices.md` > Keeping issues current has the full rules. In short:
+The issue body is the record of what is asked and what is done; `docs/github-practices.md` > Keeping issues current has the full rules. In short:
 
 - Note an open pull request in the issue body as pending. When it reaches `dev`, the session that opened it ticks the criteria it met, rewords partly met ones, and closes the issue if all are met; the developer usually merges, so don't leave this to them.
 - Before starting on an issue or epic, reconcile it with what has merged on `dev`. Tick a manual check the developer reports in the same turn, and keep an epic's current-state note in step with its children.
