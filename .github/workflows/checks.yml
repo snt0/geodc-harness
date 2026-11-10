@@ -60,9 +60,11 @@ jobs:
           fetch-depth: 0
           lfs: ${{ matrix.lfs }}
 
-      - name: Check .editorconfig matches geoDC's
+      - name: Check .editorconfig and nuget.config match geoDC's
         shell: bash
-        run: cmp .editorconfig geodc/.editorconfig
+        run: |
+          cmp .editorconfig geodc/.editorconfig
+          cmp nuget.config geodc/nuget.config
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
