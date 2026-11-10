@@ -28,6 +28,7 @@ Shared guidance for coding agents working on geoDC from this harness. Keep this 
 - Read the relevant page of `geodc/docs/ui/` before changing shared controls (`controls.md`), themes, typed resources or foreground behavior (`theming.md`), data grids (`data-grids.md`), containers and panels (`layout.md`), notifications, feedback or application-state behaviour (`feedback.md`), popup infrastructure (`popups.md`), or the Sample gallery (`sample-gallery.md`).
 - Review `geodc/docs/code-vocabulary.md` before introducing or broadly renaming role suffixes.
 - Read `docs/github-practices.md` before filing issues, applying labels, or opening pull requests.
+- Read the record in `docs/design/` (in this harness) before working on an issue that cites one, or on the angle and position conventions or Shore Control; it holds the dated decisions and the designed but unbuilt parts.
 
 ## Agent skills
 
