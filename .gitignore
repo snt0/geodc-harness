@@ -18,3 +18,7 @@ dev/captures/
 .vs/
 .vscode/
 .idea/
+
+# Build output
+bin/
+obj/
