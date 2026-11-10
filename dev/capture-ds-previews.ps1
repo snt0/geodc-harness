@@ -40,7 +40,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-# geoDC is the nested clone at geodc/ (bootstrap.ps1); the UI driver runs from inside it, where its instance file resolves.
+# geoDC is the nested clone at geodc/ (bootstrap.ps1). The UI driver runs from inside it, where its instance file
+# resolves.
 $geodc = Join-Path (Split-Path $PSScriptRoot -Parent) 'geodc'
 $driver = Join-Path $geodc 'dev/ui.ps1'
 $tool = Join-Path $geodc 'tools/geoDC.GalleryCorpus/geoDC.GalleryCorpus.csproj'

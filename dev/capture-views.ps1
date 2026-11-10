@@ -468,7 +468,8 @@ function Fail([string] $code, [string] $message, $extra)
 
 if (-not (Test-Path $sampleProject))
 {
-    Fail 'sample-project-missing' "Sample project not found at $sampleProject. Run `dev/ui.ps1 sample create` first." $null
+    Fail 'sample-project-missing' `
+        "Sample project not found at $sampleProject. Run `dev/ui.ps1 sample create` first." $null
 }
 
 if (-not (Test-Path $sampleProjectFingerprint))

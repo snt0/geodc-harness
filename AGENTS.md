@@ -21,6 +21,7 @@ Shared guidance for coding agents working on geoDC from this harness. Keep this 
 - Read `geodc/docs/logging.md` before adding or changing log calls, and when a change adds I/O, an external process, a user-initiated operation, or a `catch`.
 - Read `geodc/docs/project-packages.md` before changing `.gdcproj` behavior, manifests, compatibility, integrity, encryption, or package metadata.
 - Read `geodc/docs/reporting.md` before changing report requests, templates, the Typst renderer, or its provisioning.
+- Read `geodc/docs/shore-control.md` before changing the Shore Control page, the Shore Control Register window, point import, Show in, or the map.
 - Read `geodc/docs/work-item-alterations.md` before changing alteration guards, tokens, invalidation, or what Calculate, Finalise and Reopen do to dependent work.
 - Read `geodc/docs/coordinate-transforms.md` before transforming positions between CRSs or changing `ICoordinateTransformService`; read `geodc/docs/proj-native.md` before changing the PROJ binding or its binaries.
 - Read `geodc/docs/third-party-notices.md` before vendoring a component (JavaScript, fonts, native binaries) or adding a package whose licence metadata is missing.

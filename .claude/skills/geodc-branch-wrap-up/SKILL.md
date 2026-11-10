@@ -29,7 +29,8 @@ Work through these sections in order. Do not infer readiness from a passing buil
 
 ## 4. Requirements
 
-Go through the issue's acceptance criteria one at a time and mark each as **met**, **partial**, **deliberately dropped**, or **not reached**. Give the evidence for each: a test name, a UI driver run, a manual check, or reasoning. Say which kind it is. When a criterion needs the developer to look at the UI, give them a handoff script (`geodc-ui-driver-handoff`).
+Go through the issue's acceptance criteria one at a time and mark each as **met**, **partial**, **deliberately dropped**, or **not reached**. Give the evidence for each: a test name, a UI driver run, a manual check, or reasoning. Say which kind it is.
+ When a criterion needs the developer to look at the UI, give them a handoff script (`geodc-ui-driver-handoff`).
 
 Also state whether any of these changed, and how that was checked:
 
@@ -43,13 +44,13 @@ For UI work, state whether the surface can be driven by `geoDC.UiDriver`, and ad
 
 ## 5. Visual capture (optional)
 
-Ask whether the change warrants a capture, and do not start a long capture unprompted. Recommend `dev/capture-views.ps1 -Set full` for work on shared chrome, layout, styles or the toolkit. Capture from a clean tree after the final commit, with the window maximised. Report the label, view count, failures and fixture fingerprints. A capture is an eyeballing baseline. Do not recapture the same build, and do not promote a capture without the developer.
+Ask whether the change warrants a capture, and do not start a long capture unprompted. Recommend `dev/capture-views.ps1 -Set full` for work on shared chrome, layout, styles or the toolkit. Capture from a clean tree after the final commit, with the window maximised. Report the label, view count, failures and sample project fingerprints. A capture is an eyeballing baseline. Do not recapture the same build, and do not promote a capture without the developer.
 
 ## 6. Hand over
 
 Write the result where reviewers will see it, not in a local notes file:
 
-- **Pull request base:** `dev`, unless the branch builds on another unmerged branch. Check with `git log --oneline origin/dev..HEAD`: if it lists commits from another open pull request's branch, target that branch, name the pull request it stacks on in the body, and once the lower one is squash-merged, merge `dev` into this branch and retarget it to `dev`. See `geodc/docs/github-practices.md` > Stack sequential pull requests.
+- **Pull request base:** `dev`, unless the branch builds on another unmerged branch. Check with `git log --oneline origin/dev..HEAD`: if it lists commits from another open pull request's branch, target that branch, name the pull request it stacks on in the body, and once the lower one is squash-merged, merge `dev` into this branch and retarget it to `dev`. See `docs/github-practices.md` > Branches and pull requests.
 - **Pull request body**, following `docs/pull-request-template.md`:
   - what changed and why;
   - the acceptance-criteria table with evidence;
