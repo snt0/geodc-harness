@@ -5,7 +5,7 @@
 prefix_rule(
     pattern=["pwsh", "-NoProfile", "-WorkingDirectory", "geodc", "-File", "geodc/dev/ui.ps1"],
     decision="allow",
-    justification="geoDC's UI driver, run from inside geodc/ so its lease and fixtures resolve there, is the approved UI Automation entry point and owns only its worktree-local leased process.",
+    justification="geoDC's UI driver, run from inside geodc/ so its instance file and sample projects resolve there, is the approved UI Automation entry point and acts only on the instance it launched from that worktree.",
     match=[
         "pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 attach --target sample --launch",
         "pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 tree --target sample --depth 4",

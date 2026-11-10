@@ -109,5 +109,5 @@ if command -v pwsh >/dev/null 2>&1; then
 else
   notes+=("pwsh is not installed; dev/*.ps1 scripts cannot run.")
 fi
-notes+=("Linux host: the solution builds; Domain, Application, Infrastructure, App.Core, GeobaseImport and TestDataGenerator tests run; geoDC.App.Tests, geoDC.App.UI.Tests and the UI driver are Windows-only. Work on geoDC happens in geodc/, a repository of its own. See AGENTS.md > Cloud sessions.")
+notes+=("Linux host: the solution builds; Domain, Application, Infrastructure, App.Core and TestDataGenerator tests run; geoDC.App.Tests, geoDC.App.UI.Tests and the UI driver are Windows-only. Work on geoDC happens in geodc/, a repository of its own. See AGENTS.md > Cloud sessions.")
 report

@@ -59,8 +59,8 @@ The rules that apply to people and agents alike live in the human docs. Follow t
 - The developer guide is `geodc/docs/ui-driver.md`.
 - Ask before invoking the UI driver, then follow the `wpf-ui-driver` skill.
 - When a change has UI or behaviour the developer should see, especially from a cloud session, hand them a script to run in their worktree with the `geodc-ui-driver-handoff` skill.
-- The UI driver resolves its lease, fixtures and builds from its working directory, so always run it from inside geoDC: `pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 <verb> ...`.
-- Full-app launch may open only `dev/fixtures/probe.gdcproj`, or `dev/fixtures/probe-lifecycle.gdcproj` when a check needs work items in every workflow state, unless the user names another package (both relative to `geodc/`, as the driver sees them). Both are gitignored; create them with `pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 fixture seed` (add `--lifecycle` for the second).
+- The UI driver resolves its instance file, sample projects and builds from its working directory, so always run it from inside geoDC: `pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 <verb> ...`.
+- Full-app launch may open only the sample project `dev/sample-projects/sample.gdcproj`, or `dev/sample-projects/sample-lifecycle.gdcproj` when a check needs work items in every workflow state, unless the user names another package (both relative to `geodc/`, as the driver sees them). Both are gitignored; create them with `pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 sample create` (add `--lifecycle` for the second).
 - Passing tests or compilation do not prove live layout, focus, keyboard, popup, or rendering behavior. State the verification boundary.
 
 ## Cloud sessions

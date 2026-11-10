@@ -4,13 +4,13 @@
     Captures a full-window screenshot of every enumerated geoDC view into a labelled corpus.
 
 .DESCRIPTION
-    Launches the app under the UI driver against the dev fixture (dev/fixtures/probe.gdcproj)
+    Launches the app under the UI driver on its sample project (dev/sample-projects/sample.gdcproj)
     and writes one PNG per view to <OutDir>/<Label>/<view-id>.png, plus a capture.json
-    recording fixture fingerprint, app commit and capture timestamp.
+    recording the sample project's fingerprint, app commit and capture timestamp.
 
     A view can also declare Target = 'sample', which captures the geoDC.App.UI.Sample
     toolkit gallery instead. Views are grouped by target so each one is launched and
-    maximised exactly once. The gallery opens no project, so the fixture fingerprint is
+    maximised exactly once. The gallery opens no project, so the sample project's fingerprint is
     meaningless for its views — capture.json scopes the fingerprint to app views and says
     so, rather than recording a provenance that does not apply.
 
@@ -49,7 +49,7 @@
     commit hash, suffixed '-dirty' when the working tree has uncommitted changes.
 
 .PARAMETER KeepRunning
-    Leave the app running after the capture instead of killing the leased instance.
+    Leave the app running after the capture instead of killing the driver's instance.
 
 .PARAMETER NoMaximize
     Capture at whatever window size the app restores, instead of maximising first.
@@ -85,8 +85,8 @@
     Sources of variance — two runs against an unchanged build are NOT byte-identical:
 
       1. Rendered timestamps. Attempt rows show CreatedAtUtc ("Pitch · 25 Jul 2026"),
-         which the domain stamps when the fixture is seeded, not from the scenario's
-         fixed StartUtc. A fixture reseeded on a different day renders different dates.
+         which the domain stamps when the sample project is created, not from the scenario's
+         fixed StartUtc. A sample project recreated on a different day renders different dates.
          (ProjectFingerprint does not cover these, so the fingerprint stays equal —
          equal fingerprints do not imply equal pixels.)
       2. Window geometry. The run maximises the window, so the corpus is the size of the
@@ -121,13 +121,13 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# geoDC is the nested clone at geodc/ (bootstrap.ps1); the UI driver runs from inside it, where its lease and
-# fixtures resolve, and the corpus is written to the harness's own dev/captures/.
+# geoDC is the nested clone at geodc/ (bootstrap.ps1); the UI driver runs from inside it, where its instance file and
+# sample projects resolve, and the corpus is written to the harness's own dev/captures/.
 $harnessRoot = Split-Path $PSScriptRoot -Parent
 $repoRoot = Join-Path $harnessRoot 'geodc'
 $driver = Join-Path $repoRoot 'dev/ui.ps1'
-$fixture = Join-Path $repoRoot 'dev/fixtures/probe.gdcproj'
-$fixtureFingerprint = Join-Path $repoRoot 'dev/fixtures/probe.fingerprint.json'
+$sampleProject = Join-Path $repoRoot 'dev/sample-projects/sample.gdcproj'
+$sampleProjectFingerprint = Join-Path $repoRoot 'dev/sample-projects/sample.fingerprint.json'
 
 # ---------------------------------------------------------------------------
 # The view list. This is the single place a view is declared: adding, removing
@@ -167,8 +167,8 @@ $fixtureFingerprint = Join-Path $repoRoot 'dev/fixtures/probe.fingerprint.json'
 #
 # Calibration and Verification select an attempt before capturing: with nothing
 # selected both Results tabs render only "Select an attempt…", which would be a
-# corpus that looks complete and shows nothing. The item names are fixture
-# content — if the fixture changes, these fail loudly and want updating here.
+# corpus that looks complete and shows nothing. The item names are sample project
+# content — if the sample project changes, these fail loudly and want updating here.
 # ---------------------------------------------------------------------------
 $calibrationAttempt = 'Pitch calibration (INITIAL)'
 $verificationAttempt = 'Pitch verification (INITIAL)'
@@ -236,7 +236,7 @@ $views = @(
         )
     }
     @{
-        # The fixture's mobilisation cycle is left open (so the VRF can still be aligned), and an
+        # The sample project's mobilisation cycle is left open (so the VRF can still be aligned), and an
         # open attempt has no result until Compute is pressed. The result then stays computed for
         # the rest of the launch.
         Id = 'calibration-results'
@@ -256,7 +256,7 @@ $views = @(
         )
     }
     # No 'verification-results' view: a verification computes only against a completed calibration,
-    # and the fixture's cycle is left open so the VRF can be aligned, so the view would be empty.
+    # and the sample project's cycle is left open so the VRF can be aligned, so the view would be empty.
     @{
         # Shore Control shows the active job's copy; with none chosen it lists the operator's register,
         # so the capture shows whatever the capturing machine's register holds.
@@ -281,7 +281,7 @@ $views = @(
             @('click', '--id', 'GnssTab'),
             @('select', '--id', 'AttemptList', '--item', $gnssAttempt),
             # Results holds the plot and the data-point table; the assessment is in the inspector beside
-            # it. The chart stays hidden until a result exists, and the fixture attempt is open with
+            # it. The chart stays hidden until a result exists, and the sample project's attempt is open with
             # none, so compute it first, as calibration-results does. The result then persists for
             # the rest of the launch.
             @('click', '--id', 'ResultsTab'),
@@ -297,7 +297,7 @@ $views = @(
         # meets it at.
         #
         # Launched from the GNSS Data Input tab's Inspect button on the bound reference
-        # dataset (the fixture attempt always has both datasets bound).
+        # dataset (the sample project's attempt always has both datasets bound).
         #
         # Deliberately placed immediately after gnss-results, which shares its leading
         # GnssTab/attempt steps: that is the arrangement in which eliding would silently skip
@@ -466,19 +466,19 @@ function Fail([string] $code, [string] $message, $extra)
     exit 1
 }
 
-if (-not (Test-Path $fixture))
+if (-not (Test-Path $sampleProject))
 {
-    Fail 'fixture-missing' "Fixture not found at $fixture. Run `dev/ui.ps1 fixture seed` first." $null
+    Fail 'sample-project-missing' "Sample project not found at $sampleProject. Run `dev/ui.ps1 sample create` first." $null
 }
 
-if (-not (Test-Path $fixtureFingerprint))
+if (-not (Test-Path $sampleProjectFingerprint))
 {
-    Fail 'fixture-provenance-missing' `
-        "No $fixtureFingerprint. A corpus without a fixture fingerprint cannot be compared honestly; re-run `dev/ui.ps1 fixture seed` to produce one." `
+    Fail 'sample-project-provenance-missing' `
+        "No $sampleProjectFingerprint. A corpus without the sample project's fingerprint can't be compared with another. Run `dev/ui.ps1 sample create` to write it." `
         $null
 }
 
-$fingerprint = Get-Content $fixtureFingerprint -Raw | ConvertFrom-Json
+$fingerprint = Get-Content $sampleProjectFingerprint -Raw | ConvertFrom-Json
 
 if (-not $Label)
 {
@@ -492,9 +492,9 @@ $corpusDir = Join-Path $OutDir $Label
 New-Item -ItemType Directory -Force $corpusDir | Out-Null
 
 Write-Progress-Line "Corpus: $corpusDir"
-Write-Progress-Line "Fixture fingerprint: $($fingerprint.projectFingerprint)"
+Write-Progress-Line "Sample project fingerprint: $($fingerprint.projectFingerprint)"
 
-# Relaunch rather than reuse: a fresh process against the fixture is the only way a
+# Relaunch rather than reuse: a fresh process on the sample project is the only way a
 # corpus means the same thing twice. Each target gets exactly one of these, which is why
 # the runner below groups views by target instead of honouring declaration order.
 function Start-Target([string] $target)
@@ -709,12 +709,12 @@ $provenance = [ordered]@{
     appCommit          = (& git -C $repoRoot rev-parse HEAD 2>$null)
     workingTreeDirty   = [bool](& git -C $repoRoot status --porcelain 2>$null)
     targets            = @($startedTargets)
-    fixture            = [ordered]@{
-        # Scoped deliberately: the sample gallery opens no project, so this provenance describes
-        # only the views whose target is 'app'. Writing it at the top level would claim a fixture
-        # for the gallery views, which do not have one.
+    sampleProject      = [ordered]@{
+        # Scoped to the app: the Sample gallery opens no project, so this provenance describes
+        # only the views whose target is 'app'. Writing it at the top level would claim a sample
+        # project for the gallery views, which do not have one.
         appliesToTarget    = 'app'
-        path               = $fixture
+        path               = $sampleProject
         seed               = $fingerprint.seed
         scenario           = $fingerprint.scenario
         projectFingerprint = $fingerprint.projectFingerprint
@@ -727,7 +727,7 @@ $provenance = [ordered]@{
     views              = $captured
     failures           = $failures
     varianceKnownSources = @(
-        'rendered CreatedAtUtc timestamps in attempt rows (fixture seed date)',
+        'rendered CreatedAtUtc timestamps in attempt rows (the date the sample project was created)',
         'window geometry restored from app settings',
         'LOGS dock contents (per-session Serilog lines)',
         'focus ring placement after select (seen on calibration-results)',
@@ -738,7 +738,7 @@ $provenance = [ordered]@{
 $provenance | ConvertTo-Json -Depth 6 | Set-Content -Path (Join-Path $corpusDir 'capture.json') -Encoding utf8
 
 # Every target this run started, not just the last: a two-target run otherwise leaves the
-# first one alive, holding its lease and its fixture workspace.
+# first one alive, holding its instance file and its sample project workspace.
 if (-not $KeepRunning)
 {
     foreach ($started in ($startedTargets | Select-Object -Unique))

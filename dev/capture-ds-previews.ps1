@@ -9,7 +9,7 @@
     1. tools/geoDC.GalleryCorpus renders every registered specimen offscreen and writes
            <OutDir>/dark/<Id>.png, <OutDir>/light/<Id>.png and <OutDir>/manifest.json
     2. Specimens the manifest marks requiresLiveWindow are captured through dev/ui.ps1 from the running
-       gallery and added to the manifest with source "probe".
+       gallery and added to the manifest with source "ui-driver".
     3. Everything is zipped to <OutDir>.zip.
 
     See "Screenshot corpus" in docs/ui/sample-gallery.md; dev/sync-design-system.ps1 turns the corpus into
@@ -40,7 +40,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-# geoDC is the nested clone at geodc/ (bootstrap.ps1); the UI driver runs from inside it, where its lease resolves.
+# geoDC is the nested clone at geodc/ (bootstrap.ps1); the UI driver runs from inside it, where its instance file resolves.
 $geodc = Join-Path (Split-Path $PSScriptRoot -Parent) 'geodc'
 $driver = Join-Path $geodc 'dev/ui.ps1'
 $tool = Join-Path $geodc 'tools/geoDC.GalleryCorpus/geoDC.GalleryCorpus.csproj'
@@ -111,7 +111,7 @@ if (-not $OffscreenOnly -and ($live.Count -gt 0 -or $PageShots)) {
                 $size = Get-PngSize $out
                 $capture = [ordered]@{
                     theme = $theme; file = "$theme/$id.png"; pixelWidth = $size[0]; pixelHeight = $size[1]
-                    source = 'probe'; pixelsSha256 = $null
+                    source = 'ui-driver'; pixelsSha256 = $null
                 }
                 $entry.captures = @(@($entry.captures) + [pscustomobject]$capture)
             }

@@ -19,7 +19,7 @@ Only committed repository configuration and the environment reach a cloud sessio
 
 | Runs on Linux | Windows only |
 | --- | --- |
-| `geoDC.Domain.Tests`, `geoDC.Application.Tests`, `geoDC.Infrastructure.Tests`, `geoDC.App.Core.Tests`, `geoDC.GeobaseImport.Tests`, `geoDC.UiDriver.Tests` (the UI driver's UIA-free logic), `geoDC.Proj.Tests` (against the committed `linux-x64` PROJ build), `geoDC.Reporting.Tests`, `geoDC.TestDataGenerator.Tests` | `geoDC.App.Tests`, `geoDC.App.UI.Tests`, `geoDC.App.Text.Generators.Tests` (Windows target frameworks), the app, the Sample gallery, the UI driver itself |
+| `geoDC.Domain.Tests`, `geoDC.Application.Tests`, `geoDC.Infrastructure.Tests`, `geoDC.App.Core.Tests`, `geoDC.UiDriver.Tests` (the UI driver's UIA-free logic), `geoDC.Proj.Tests` (against the committed `linux-x64` PROJ build), `geoDC.Reporting.Tests`, `geoDC.TestDataGenerator.Tests` | `geoDC.App.Tests`, `geoDC.App.UI.Tests`, `geoDC.App.Text.Generators.Tests` (Windows target frameworks), the app, the Sample gallery, the UI driver itself |
 
 Treat cloud changes covered only by the Windows-only projects as compile-verified and confirm them in a Windows session.
 
