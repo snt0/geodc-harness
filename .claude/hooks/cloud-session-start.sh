@@ -4,7 +4,10 @@
 # toolchain; this makes sure the harness has its geoDC clone at geodc/ and restores what belongs to
 # that clone. See docs/cloud-sessions.md.
 [[ "$CLAUDE_CODE_REMOTE" == "true" ]] || exit 0
-cd "$CLAUDE_PROJECT_DIR" || exit 0
+# The harness root, found from this script's real path: with geoDC attached, the session starts in the
+# folder above the harness, whose .claude/hooks links here (dev/cloud-setup.sh), so CLAUDE_PROJECT_DIR is
+# not the harness.
+cd "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../.." || exit 0
 
 notes=()
 report() {
