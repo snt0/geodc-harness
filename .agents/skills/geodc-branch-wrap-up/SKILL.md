@@ -43,7 +43,7 @@ For UI work, state whether the surface can be driven by `geoDC.UiDriver`, and ad
 
 ## 5. Visual capture (optional)
 
-Ask whether the change warrants a capture, and do not start a long capture unprompted. Recommend `dev/capture-views.ps1 -Set full` for work on shared chrome, layout, styles or the toolkit. Capture from a clean tree after the final commit, with the window maximised. Report the label, view count, failures and fixture fingerprints. A capture is an eyeballing baseline. Do not recapture the same build, and do not promote a capture without the developer.
+Ask whether the change warrants a capture, and do not start a long capture unprompted. Recommend `dev/capture-views.ps1 -Set full` for work on shared chrome, layout, styles or the toolkit. Capture from a clean tree after the final commit, with the window maximised. Report the label, view count, failures and sample project fingerprints. A capture is an eyeballing baseline. Do not recapture the same build, and do not promote a capture without the developer.
 
 ## 6. Hand over
 
