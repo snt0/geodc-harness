@@ -17,7 +17,7 @@
     - the Component index in README.md is regenerated, and design-system.json's lastChange records the commit.
 
     <Out>/changes.json lists the paths to write and delete, and <Out>/changes.md summarises them for review.
-    Publishing is a separate step; see "Design-system sync" in docs/ui/sample-gallery.md.
+    Publishing is a separate step; see docs/design-system-sync.md.
 
 .PARAMETER DesignSystem
     Folder holding a copy of the design system's published files (its project/ folder, including the PNGs under
