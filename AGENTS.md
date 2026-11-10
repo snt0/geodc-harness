@@ -43,7 +43,7 @@ The rules that apply to people and agents alike live in the human docs. Follow t
 - `geodc/docs/coding-style.md`: C# conventions, XML documentation and comments, documentation pages, and what a change checks (Making a Change).
 - `geodc/docs/data-model.md` > Changing the Model: IDs, value objects, lifecycles, `ProjectFingerprint` coverage and audit.
 - `geodc/docs/ui/README.md` > Rules: controls, panels, theme resources, foreground roots, copy and sign wording.
-- `geodc/docs/logging.md`: where logging is expected, levels, and the event catalogue.
+- `geodc/docs/logging.md`: where logging is expected, message grammar, levels, property names and example log calls.
 
 ## Build and test in agent sessions
 

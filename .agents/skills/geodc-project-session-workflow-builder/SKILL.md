@@ -23,7 +23,7 @@ Keep project lifecycle orchestration coherent across the shell, workspace handle
 - Keep dialogs and operator-facing outcomes in outer orchestration; keep package/container mechanics in `ProjectPackageService`.
 - Preserve zstd packages, legacy ZIP reads, manifest provenance/migration, entry integrity, encryption, and host-supplied `IApplicationMetadata` as applicable.
 - Read `Workspace/Handlers/IDENTITY_CONVENTIONS.md` before changing save semantics. Use `PersistenceIdentity.ShouldInsert(...)`; preassigned ULIDs may still be new.
-- Use the project session and package events in the `geodc/docs/logging.md` catalogue (`ProjectSessionOpened`, `ProjectFileSaved`, `ProjectPackageRejected`, ...) with their canonical properties; the workflow boundary logs the outcome once.
+- Log project session and package outcomes as `geodc/docs/logging.md` describes, following the existing calls in `ProjectFileWorkflowService` and using the documented property names (`ProjectFilePath`, `ProjectId`, ...). The workflow boundary logs the outcome once.
 - Treat identity as a graph: remapped IDs must reach later handlers in the same save pass and remain stable through save, reopen, and save-as.
 
 ## Verification
