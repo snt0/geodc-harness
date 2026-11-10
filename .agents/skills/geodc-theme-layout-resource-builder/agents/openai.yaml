@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC Theme Resource Builder"
+  short_description: "Refine typed theme and layout resources"
+  default_prompt: "Use $geodc-theme-layout-resource-builder to update geoDC shared theme or layout resources, dictionary wiring, or typed resource access."

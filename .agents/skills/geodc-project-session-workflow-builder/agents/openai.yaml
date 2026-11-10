@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC Project Session Workflow Builder"
+  short_description: "Build geoDC project lifecycle and identity-safe save flows"
+  default_prompt: "Use $geodc-project-session-workflow-builder to build or refine a geoDC project open, save, save-as, or reopen workflow with correct identity handling."

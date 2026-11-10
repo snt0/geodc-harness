@@ -1,0 +1,34 @@
+# geoDC harness commands that may run outside the sandbox without prompting. geoDC itself is the nested clone
+# at geodc/, so its commands name it.
+# Keep this list narrow: mutating Git operations and arbitrary PowerShell remain approval-gated.
+
+prefix_rule(
+    pattern=["pwsh", "-NoProfile", "-WorkingDirectory", "geodc", "-File", "geodc/dev/ui.ps1"],
+    decision="allow",
+    justification="geoDC's UI driver, run from inside geodc/ so its lease and fixtures resolve there, is the approved UI Automation entry point and owns only its worktree-local leased process.",
+    match=[
+        "pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 attach --target sample --launch",
+        "pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 tree --target sample --depth 4",
+        "pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 do --target sample scroll --id SampleScrollViewer --direction down ++ tree --id SampleScrollViewer",
+    ],
+    not_match=[
+        "pwsh -NoProfile -File dev/capture-views.ps1",
+        "pwsh -NoProfile -Command geodc/dev/ui.ps1 tree --target sample",
+        "pwsh -NoProfile -File geodc/dev/ui.ps1 tree --target sample",
+    ],
+)
+
+prefix_rule(
+    pattern=["dotnet", ["build", "test", "restore"]],
+    decision="allow",
+    justification="Build, test, and restore are standard verification operations for this trusted .NET repository.",
+)
+
+prefix_rule(pattern=["git", "status"], decision="allow")
+prefix_rule(pattern=["git", "diff"], decision="allow")
+prefix_rule(pattern=["git", "log"], decision="allow")
+prefix_rule(pattern=["git", "show"], decision="allow")
+prefix_rule(pattern=["git", "rev-parse"], decision="allow")
+prefix_rule(pattern=["git", "branch", "--list"], decision="allow")
+prefix_rule(pattern=["git", "branch", "--show-current"], decision="allow")
+prefix_rule(pattern=["git", "branch", "--contains"], decision="allow")

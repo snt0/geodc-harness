@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC Branch Wrap-up"
+  short_description: "Reconcile a geoDC branch for review"
+  default_prompt: "Use $geodc-branch-wrap-up to review the branch against its GitHub issue, bring docs and code up to standard, and check every acceptance criterion before review or merge."

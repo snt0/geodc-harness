@@ -1,0 +1,160 @@
+{
+  "env": {
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build *)",
+      "Bash(dotnet restore *)",
+      "Bash(dotnet test *)",
+      "Bash(dotnet run *)",
+      "Bash(dotnet publish *)",
+      "Bash(dotnet clean *)",
+      "Bash(dotnet format *)",
+      "Bash(dotnet tool *)",
+      "Bash(dotnet add *)",
+      "Bash(dotnet remove *)",
+      "Bash(dotnet list *)",
+      "Bash(dotnet watch *)",
+      "Bash(dotnet new *)",
+      "Bash(dotnet pack *)",
+      "Bash(dotnet nuget *)",
+      "Bash(dotnet ef *)",
+      "Bash(dotnet package search *)",
+      "PowerShell(dotnet build *)",
+      "PowerShell(dotnet restore *)",
+      "PowerShell(dotnet test *)",
+      "PowerShell(dotnet run *)",
+      "PowerShell(dotnet publish *)",
+      "PowerShell(dotnet clean *)",
+      "PowerShell(dotnet format *)",
+      "PowerShell(dotnet tool *)",
+      "PowerShell(dotnet add *)",
+      "PowerShell(dotnet remove *)",
+      "PowerShell(dotnet list *)",
+      "PowerShell(dotnet watch *)",
+      "PowerShell(dotnet new *)",
+      "PowerShell(dotnet pack *)",
+      "PowerShell(dotnet nuget *)",
+      "PowerShell(dotnet ef *)",
+      "PowerShell(dotnet package search *)",
+      "Bash(git *)",
+      "PowerShell(git *)",
+      "Bash(find *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(fd *)",
+      "Bash(tree *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(Measure-Object *)",
+      "PowerShell(Get-Item *)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(Resolve-Path *)",
+      "PowerShell(Get-Location)",
+      "PowerShell(Set-Location *)",
+      "PowerShell(Push-Location *)",
+      "PowerShell(Pop-Location)",
+      "Bash(ps *)",
+      "Bash(echo *)",
+      "Bash(env *)",
+      "Bash(printenv *)",
+      "Bash(which *)",
+      "Bash(pwd)",
+      "Bash(date *)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Select-String *)",
+      "PowerShell(Select-Object *)",
+      "PowerShell(Write-Output *)",
+      "PowerShell(Write-Host *)",
+      "PowerShell(Get-Variable *)",
+      "PowerShell(Set-Variable *)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(Get-Date *)",
+      "PowerShell(Get-Host)",
+      "Read(**)",
+      "Edit(**)",
+      "Bash(node --test)",
+      "PowerShell(node --test)",
+      "Bash(geodc/tools/geoDC.UiDriver/bin/*)",
+      "Bash(./geodc/tools/geoDC.UiDriver/bin/*)",
+      "PowerShell(geodc/tools/geoDC.UiDriver/bin/*)",
+      "PowerShell(& geodc/tools/geoDC.UiDriver/bin/*)",
+      "Bash(pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 *)",
+      "PowerShell(pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 *)",
+      "Bash(pwsh -NoProfile -File dev/sync-agent-skills.ps1 *)",
+      "PowerShell(pwsh -NoProfile -File dev/sync-agent-skills.ps1 *)",
+      "PowerShell(geodc/dev/ui.ps1 *)",
+      "PowerShell(& geodc/dev/ui.ps1 *)",
+      "Bash(rm *)",
+      "Bash(rmdir *)",
+      "Bash(mv *)",
+      "Bash(cp *)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(Move-Item *)",
+      "PowerShell(Copy-Item *)",
+      "PowerShell(Clear-Content *)",
+      "PowerShell(Rename-Item *)",
+      "Bash(mkdir *)",
+      "Bash(touch *)",
+      "Bash(chmod *)",
+      "PowerShell(New-Item *)"
+    ],
+    "deny": [
+      "Bash(curl * | bash *)",
+      "Bash(wget * | bash *)",
+      "Bash(curl * | sh *)",
+      "Bash(wget * | sh *)",
+      "PowerShell(Invoke-Expression *)",
+      "PowerShell(iex *)"
+    ],
+    "defaultMode": "auto"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=\"$(jq -r '.tool_input.command // empty')\"; printf '%s' \"$cmd\" | grep -Eq '^pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui\\.ps1 [A-Za-z0-9 ._/:+,=\"-]*$' && echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"the geoDC UI driver shim is pre-approved for this project\"}}'; exit 0",
+            "statusMessage": "Checking UI driver shim allowlist"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/git-push-guard.sh\"",
+            "statusMessage": "Checking git push target"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/cloud-session-start.sh\"",
+            "timeout": 600,
+            "statusMessage": "Preparing cloud session"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/cloud-stop-guard.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

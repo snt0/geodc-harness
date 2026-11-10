@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC Charting Builder"
+  short_description: "Build charts across C#, D3, WebView2, and SVG"
+  default_prompt: "Use $geodc-charting-builder to change a geoDC chart coherently across its contracts, renderer, WPF configuration, live host, report export, and tests."

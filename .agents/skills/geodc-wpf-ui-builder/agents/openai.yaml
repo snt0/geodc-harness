@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC WPF UI Builder"
+  short_description: "Build geoDC WPF views from viewmodels"
+  default_prompt: "Use $geodc-wpf-ui-builder to build or refine a geoDC WPF view from a viewmodel or UI requirements."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC Test Data Builder"
+  short_description: "Generate connected geoDC test projects"
+  default_prompt: "Use $geodc-test-data-builder to generate or refine deterministic geoDC project fixtures, raw CSV data, scenarios, and fingerprint verification."

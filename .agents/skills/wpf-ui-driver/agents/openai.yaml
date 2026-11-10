@@ -1,0 +1,4 @@
+interface:
+  display_name: "WPF UI Driver"
+  short_description: "Inspect and drive geoDC WPF surfaces"
+  default_prompt: "Use $wpf-ui-driver to inspect and verify the running geoDC WPF UI."

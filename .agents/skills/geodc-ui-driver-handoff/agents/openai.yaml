@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC UI Driver Handoff"
+  short_description: "Give the developer a script to view a branch's changes"
+  default_prompt: "Use $geodc-ui-driver-handoff to give me a script I can run in a worktree to see and check the changes on this branch."

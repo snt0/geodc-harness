@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC Shared Control Builder"
+  short_description: "Promote reusable UI into shared controls"
+  default_prompt: "Use $geodc-shared-control-builder to create or refine a reusable control in geoDC.App.UI with theme, sample, and test coverage."

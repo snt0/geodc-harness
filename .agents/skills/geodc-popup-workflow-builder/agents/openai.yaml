@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC Popup Workflow Builder"
+  short_description: "Build typed geoDC popup workflows"
+  default_prompt: "Use $geodc-popup-workflow-builder to build or refine a typed geoDC popup definition, viewmodel, actions, host interaction, template, or popup behavior test."

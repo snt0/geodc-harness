@@ -1,0 +1,20 @@
+# The geoDC clone the harness works on (bootstrap.ps1 / bootstrap.sh); it is a repository of its own.
+/geodc
+
+# Screenshot corpora (dev/capture-views.ps1, dev/capture-ds-previews.ps1): regenerable, and large
+dev/captures/
+
+# Session-local Claude Code permission decisions and agent worktrees
+.claude/settings.local.json
+.claude/worktrees/
+
+.agents/*
+!.agents/skills/
+!.agents/skills/**
+/.codex/*
+!/.codex/rules/
+!/.codex/rules/*.rules
+
+.vs/
+.vscode/
+.idea/

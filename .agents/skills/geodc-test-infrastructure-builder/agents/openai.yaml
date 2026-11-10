@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC Test Infrastructure Builder"
+  short_description: "Build WPF and NUnit test harnesses"
+  default_prompt: "Use $geodc-test-infrastructure-builder to add or fix geoDC WPF and NUnit test infrastructure, especially STA, resource, and shared-control tests."

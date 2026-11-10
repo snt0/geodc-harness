@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC MVVM Page Builder"
+  short_description: "Build geoDC MVVM workflow viewmodels"
+  default_prompt: "Use $geodc-mvvm-page-builder to build or refine a workspace-backed geoDC page or shell viewmodel, including its observable state, commands, projections, and refresh behavior."

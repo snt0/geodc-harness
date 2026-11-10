@@ -1,0 +1,4 @@
+interface:
+  display_name: "geoDC Persistence Builder"
+  short_description: "Build EF persistence with audit and fingerprints"
+  default_prompt: "Use $geodc-persistence-builder to implement a geoDC persistence change across domain shape, EF mapping, application boundaries, DI, audit, fingerprints, workspace handlers, and tests."
