@@ -52,4 +52,4 @@ designed but unbuilt work go in this harness's `docs/design/` records, not in ge
 - Before a broad change, search for the affected terms across `geodc/src`, `geodc/tests` and `geodc/docs`, and update
   every page and comment they appear in.
 - Don't bulk-rename just to make the repository more uniform. Rename a family of types only once its meaning and the
-  scope of the change are agreed (`geodc/docs/code-vocabulary.md`).
+  scope of the change are agreed (`docs/code-vocabulary.md`).

@@ -27,7 +27,7 @@ Shared guidance for coding agents working on geoDC from this harness. Keep this 
 - Read `geodc/docs/third-party-notices.md` before vendoring a component (JavaScript, fonts, native binaries) or adding a package whose licence metadata is missing.
 - Read `docs/cloud-sessions.md` before changing the cloud environment setup script; read `docs/cloud-sessions-claude.md` before changing the `.claude/hooks` scripts. Both are in this harness.
 - Read the relevant page of `geodc/docs/ui/` before changing shared controls (`controls.md`), themes, typed resources or foreground behavior (`theming.md`), data grids (`data-grids.md`), containers and panels (`layout.md`), notifications, feedback or application-state behaviour (`feedback.md`), popup infrastructure (`popups.md`), or the Sample gallery (`sample-gallery.md`).
-- Review `geodc/docs/code-vocabulary.md` before introducing or broadly renaming role suffixes.
+- Review `docs/code-vocabulary.md` (in this harness) before introducing or broadly renaming role suffixes.
 - Read `docs/github-practices.md` before filing issues, applying labels, or opening pull requests.
 - Read the record in `docs/design/` (in this harness) before working on an issue that cites one, or on the angle and position conventions or Shore Control; it holds the dated decisions and the designed but unbuilt parts.
 
