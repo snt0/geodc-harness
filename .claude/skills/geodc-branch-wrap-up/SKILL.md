@@ -35,7 +35,7 @@ Also state whether any of these changed, and how that was checked:
 
 - sign conventions or angle semantics;
 - pass/fail logic;
-- report or fingerprint reproducibility;
+- project fingerprint reproducibility;
 - immutability of approved results;
 - persisted formats or package compatibility.
 
