@@ -15,6 +15,7 @@ Shared guidance for coding agents working on geoDC from this harness. Keep this 
 - Read `geodc/docs/finding-things.md` to get from text, a popup, a menu item or a grid column on screen to the files behind it.
 - Read `geodc/docs/domain-context.md` and `geodc/docs/data-model.md` before changing domain names, workflows, calculations, or persisted domain state; read `geodc/docs/data-analysis.md` before changing dataset inspection, alignment, or editing.
 - Read `geodc/docs/coding-style.md` before introducing a type shape, interface, DI registration, null-forgiving operator, or cancellable async API, and before writing XML documentation or comments.
+- Read `docs/writing.md` (in this harness) before writing comments, XML documentation or pages under `geodc/docs`.
 - Read `geodc/docs/copy-style.md` before writing or changing user-facing text.
 - Read `geodc/docs/app-layout.md` before adding, moving or renaming files in `geoDC.App` or `geoDC.App.Tests`, or adding a feature area.
 - Read `geodc/docs/shell-menus.md` before adding or changing a main menu entry, an application-wide shortcut, or when a shell command is available.
@@ -41,7 +42,8 @@ The rules that apply to people and agents alike live in the human docs. Follow t
 
 - `geodc/docs/codebase.md`: the solution map and layering (dependencies point inward; the domain stays free of EF, DI, logging and UI), build and test commands, the domain rules, and an index of every convention page.
 - `geodc/docs/domain-context.md` > Rules That Hold Everywhere: the domain rules, with the reasoning behind them.
-- `geodc/docs/coding-style.md`: C# conventions, XML documentation and comments, documentation pages, and what a change checks (Making a Change).
+- `geodc/docs/coding-style.md`: C# conventions, XML documentation and comments, and what a change checks (Making a Change).
+- `docs/writing.md`: how to write comments, XML documentation and docs pages.
 - `geodc/docs/data-model.md` > Changing the Model: IDs, value objects, lifecycles, `ProjectFingerprint` coverage and audit.
 - `geodc/docs/ui/README.md` > Rules: controls, panels, theme resources, foreground roots, copy and sign wording.
 - `geodc/docs/logging.md`: where logging is expected, levels, and the event catalogue.

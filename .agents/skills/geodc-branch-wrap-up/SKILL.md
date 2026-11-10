@@ -16,8 +16,8 @@ Work through these sections in order. Do not infer readiness from a passing buil
 ## 2. Documentation
 
 - Reconcile the docs the change affects: `geodc/docs/domain-context.md` and `geodc/docs/data-model.md` for domain terms and invariants, `geodc/docs/project-packages.md` for persisted formats, `geodc/docs/string-resources.md` conventions for app copy in `Strings/*.yaml`, `geodc/docs/ui/` for shared controls, `AGENTS.md`, and canonical `.agents/skills`. After a skill change run `pwsh -NoProfile -File dev/sync-agent-skills.ps1 -Write`, then again without `-Write`.
-- Docs describe the system as it is now. Remove statements the change made stale rather than appending "now" or "previously" notes.
-- Check the XML documentation on new and changed members against `geodc/docs/coding-style.md` > Comments and Documentation. Every public member has a summary that says something the name does not. There are no issue numbers, history, review or process notes, or plans in source comments.
+- Docs describe the system as it is now, written to `docs/writing.md`. Remove statements the change made stale rather than appending "now" or "previously" notes.
+- Check the XML documentation on new and changed members against `geodc/docs/coding-style.md` > Comments and Documentation and `docs/writing.md`. Every public member has a summary that says something the name does not. There are no issue numbers, history, review or process notes, or plans in source comments.
 
 ## 3. Code cleanup
 
