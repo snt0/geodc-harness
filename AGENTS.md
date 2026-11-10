@@ -15,7 +15,7 @@ Shared guidance for coding agents working on geoDC from this harness. Keep this 
 - Read `geodc/docs/finding-things.md` to get from text, a popup, a menu item or a grid column on screen to the files behind it.
 - Read `geodc/docs/domain-context.md` and `geodc/docs/data-model.md` before changing domain names, workflows, calculations, or persisted domain state; read `geodc/docs/data-analysis.md` before changing dataset inspection, alignment, or editing.
 - Read `geodc/docs/coding-style.md` before introducing a type shape, interface, DI registration, null-forgiving operator, or cancellable async API, and before writing XML documentation or comments.
-- Read `geodc/docs/copy-style.md` before writing or changing user-facing text.
+- Read `geodc/docs/copy-style.md` before writing or changing user-facing text, and `docs/writing-style.md` before writing or changing comments, XML documentation or pages under `geodc/docs/`.
 - Read `geodc/docs/app-layout.md` before adding, moving or renaming files in `geoDC.App` or `geoDC.App.Tests`, or adding a feature area.
 - Read `geodc/docs/shell-menus.md` before adding or changing a main menu entry, an application-wide shortcut, or when a shell command is available.
 - Read `geodc/docs/logging.md` before adding or changing log calls, and when a change adds I/O, an external process, a user-initiated operation, or a `catch`.
