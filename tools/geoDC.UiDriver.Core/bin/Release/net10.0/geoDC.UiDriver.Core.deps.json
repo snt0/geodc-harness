@@ -1,0 +1,52 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "geoDC.UiDriver.Core/1.0.0": {
+        "dependencies": {
+          "geodc-find-text": "1.0.0",
+          "geodc-find-text.Reference": "2026.0.433.4589"
+        },
+        "runtime": {
+          "geoDC.UiDriver.Core.dll": {}
+        }
+      },
+      "geodc-find-text/1.0.0": {
+        "runtime": {
+          "geodc-find-text.dll": {
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "geodc-find-text.Reference/2026.0.433.4589": {
+        "runtime": {
+          "geodc-find-text.dll": {
+            "assemblyVersion": "2026.0.433.4589",
+            "fileVersion": "2026.0.433.4589"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "geoDC.UiDriver.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "geodc-find-text/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "geodc-find-text.Reference/2026.0.433.4589": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

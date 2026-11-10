@@ -1,0 +1,1182 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>geodc-ui</name>
+    </assembly>
+    <members>
+        <member name="T:geoDC.UiDriver.AppDataRoot">
+            <summary>
+                Locates geoDC.App's data root the way <c>geoDC.App.Startup.RegistryApplicationDataPathProvider</c> does:
+                the <c>DataRootPath</c> registry value (current user, then machine), else <c>%LOCALAPPDATA%\geoDC</c>.
+                The app writes its rolling logs under <c>&lt;root&gt;\logs</c>. The UI driver links no geoDC assembly, so
+                this logic is duplicated here: keep the two in step.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.AppDataRoot.LogsDirectory">
+            <summary>
+                The full path of the app's log directory, <c>&lt;root&gt;\logs</c>, resolved from the registry on every
+                call. The directory may not exist. An unreadable registry value or an invalid configured path falls back to
+                the default root.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.DotnetBuildResult">
+            <summary>The outcome of a <c>dotnet build</c> run by <c>rebuild</c>.</summary>
+            <param name="ExitCode">The build's exit code; 0 is success.</param>
+            <param name="DurationMs">How long the build took.</param>
+            <param name="LogPath">The MSBuild log file the build wrote.</param>
+            <param name="Errors">The errors in the log and the console output.</param>
+        </member>
+        <member name="M:geoDC.UiDriver.DotnetBuildResult.#ctor(System.Int32,System.Int64,System.String,geoDC.UiDriver.BuildErrors)">
+            <summary>The outcome of a <c>dotnet build</c> run by <c>rebuild</c>.</summary>
+            <param name="ExitCode">The build's exit code; 0 is success.</param>
+            <param name="DurationMs">How long the build took.</param>
+            <param name="LogPath">The MSBuild log file the build wrote.</param>
+            <param name="Errors">The errors in the log and the console output.</param>
+        </member>
+        <member name="P:geoDC.UiDriver.DotnetBuildResult.ExitCode">
+            <summary>The build's exit code; 0 is success.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.DotnetBuildResult.DurationMs">
+            <summary>How long the build took.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.DotnetBuildResult.LogPath">
+            <summary>The MSBuild log file the build wrote.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.DotnetBuildResult.Errors">
+            <summary>The errors in the log and the console output.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.DotnetBuildResult.Succeeded">
+            <summary>
+                True when <see cref="P:geoDC.UiDriver.DotnetBuildResult.ExitCode" /> is 0. Success is decided by the exit code, not by whether any errors were
+                parsed.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.DotnetBuild">
+            <summary>
+                Runs <c>dotnet build</c> for a <see cref="T:geoDC.UiDriver.RebuildPlan" />. Nothing it prints reaches the UI driver's stdout,
+                which stays the one-line JSON contract. MSBuild writes its log to a file under <c>.ui-driver/builds/</c>, and
+                the little the CLI itself prints is read for errors and then dropped.
+            </summary>
+        </member>
+        <member name="F:geoDC.UiDriver.DotnetBuild.Timeout">
+            <summary>How long a build may run before it is stopped.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.DotnetBuild.Run(geoDC.UiDriver.RebuildPlan)">
+            <summary>Builds the plan's project and configuration from the working directory.</summary>
+            <exception cref="T:geoDC.UiDriver.DriverException">
+                <c>build-not-started</c> when <c>dotnet</c> cannot be started; <c>build-timeout</c> when the build runs past
+                <see cref="F:geoDC.UiDriver.DotnetBuild.Timeout" />, after it has been stopped.
+            </exception>
+        </member>
+        <member name="T:geoDC.UiDriver.DriverInstance">
+            <summary>
+                The driver's instance: the worktree-local record of the process the UI driver launched for a target. Later
+                invocations act only on the recorded PID, so an unrelated geoDC process with the same executable name is never
+                selected.
+            </summary>
+            <remarks>
+                The instance file outlives its process. When the app exits or crashes, the file stays, so <c>status</c> can
+                report the instance as gone and <c>rebuild</c> can launch it again with the same arguments. <c>kill</c> removes
+                the file, and the next launch replaces it. Only <see cref="M:geoDC.UiDriver.DriverInstance.TryOpen(geoDC.UiDriver.DriverTarget,System.Boolean@)" /> decides whether
+                the recorded process is still the one that was launched.
+            </remarks>
+        </member>
+        <member name="M:geoDC.UiDriver.DriverInstance.TryOpen(geoDC.UiDriver.DriverTarget)">
+            <summary>
+                Opens the driver's instance of <paramref name="target" />, or returns null when there is no instance file or
+                its process has exited or is not the one that was launched; see
+                <see cref="M:geoDC.UiDriver.DriverInstance.TryOpen(geoDC.UiDriver.DriverTarget,System.Boolean@)" />. The caller disposes the returned process.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.DriverInstance.TryOpen(geoDC.UiDriver.DriverTarget,System.Boolean@)">
+            <summary>
+                Opens the driver's instance and reports whether it was launched in passive mode. Returns null when there is
+                no instance file or its process has exited. A process id since reused by another process does not match,
+                because its start time and executable differ from the recorded ones.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.DriverInstance.TryRead(geoDC.UiDriver.DriverTarget)">
+            <summary>
+                Reads the instance file of <paramref name="target" /> without checking its process. Returns null when there
+                is none. A file that is not an instance record for this target is removed.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.DriverInstance.Write(geoDC.UiDriver.DriverTarget,System.Diagnostics.Process,System.String,System.Boolean,System.String)">
+            <summary>
+                Records <paramref name="process" /> as the driver's instance of the target, replacing any earlier instance
+                file atomically.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.DriverInstance.Delete(geoDC.UiDriver.DriverTarget)">
+            <summary>
+                Removes the instance file of <paramref name="target" /> if there is one. An I/O or access failure leaves the
+                file in place without throwing. A later invocation validates it and replaces or removes it.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.DriverInstance.FilePath(geoDC.UiDriver.DriverTarget)">
+            <summary>
+                The absolute path of the instance file of <paramref name="target" />,
+                <c>.ui-driver/&lt;name&gt;-instance.json</c> in the driver home, whether or not it exists.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.DriverTrace">
+            <summary>
+                Timestamped stderr trace of UI driver steps, showing which call brought the app to the foreground. Times are
+                local wall-clock with milliseconds, matching the app's Serilog file. Opt-in through
+                <see cref="F:geoDC.UiDriver.DriverTrace.EnvironmentVariable" />: several lines per step would otherwise flood the output for a
+                diagnostic that is only wanted when hunting a focus thief. Disabled, every call is a no-op.
+            </summary>
+        </member>
+        <member name="F:geoDC.UiDriver.DriverTrace.EnvironmentVariable">
+            <summary>Set to <c>1</c> to turn the trace on.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.DriverTrace.Enable(System.Int32)">
+            <summary>Starts tracing against the given app process, if the trace was requested.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.DriverTrace.Write(System.String,System.String)">
+            <summary>Writes one trace line naming the phase and who currently owns the foreground.</summary>
+        </member>
+        <member name="T:geoDC.UiDriver.ElementObserver">
+            <summary>Reads an element's automation state into an <see cref="T:geoDC.UiDriver.ObservedElementState" /> for wait polling.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementObserver.Observe(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>
+                The element's current state, or <see cref="P:geoDC.UiDriver.ObservedElementState.UnreadableNow" /> when a read throws.
+                The caller found this element in a fresh search, so a failed read is not proof it has gone: the poll is
+                retried, and the next search reports it absent if it has really left the tree.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementObserver.ReadValue(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>
+                The ValuePattern value, keeping "no ValuePattern" (null, not unreadable) apart from "has one but the read
+                failed" (unreadable), because only the former lets <c>--value-matches</c> fall back to Name.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementObserver.Optional(System.Func{System.String})">
+            <summary>Pattern reads can fail on their own (a provider mid-teardown); losing one field beats losing the poll.</summary>
+        </member>
+        <member name="T:geoDC.UiDriver.ElementResolver">
+            <summary>
+                Resolves elements by exact AutomationId across all geoDC top-level windows (or the main
+                window only), with a bounded retry loop. WPF pages load asynchronously, and retrying until
+                <c>--timeout</c> absorbs that, so a script does not need to add sleeps. An ambiguous match is
+                an error listing the candidates and the scope that selects each. A not-found error lists
+                near-matches, the windows holding the id outside a narrowed search, and a suggested next
+                step (see <see cref="T:geoDC.UiDriver.ElementLookupAnalyzer" />).
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.#ctor(geoDC.UiDriver.GeoDcSession)">
+            <summary>
+                Resolves elements by exact AutomationId across all geoDC top-level windows (or the main
+                window only), with a bounded retry loop. WPF pages load asynchronously, and retrying until
+                <c>--timeout</c> absorbs that, so a script does not need to add sleeps. An ambiguous match is
+                an error listing the candidates and the scope that selects each. A not-found error lists
+                near-matches, the windows holding the id outside a narrowed search, and a suggested next
+                step (see <see cref="T:geoDC.UiDriver.ElementLookupAnalyzer" />).
+            </summary>
+        </member>
+        <member name="F:geoDC.UiDriver.ElementResolver.ReadyPollInterval">
+            <summary>Layout settles in frames, not tree revisions, and probing one element is cheap.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.Resolve(System.String,System.String,System.Boolean,System.TimeSpan)">
+            <summary>
+                Finds the one element with AutomationId <paramref name="automationId" /> (exact, case-sensitive) under the
+                search roots of <see cref="M:geoDC.UiDriver.ElementResolver.SearchRoots(System.String,System.Boolean,System.Boolean)" />, polling every 250 ms until it appears or
+                <paramref name="timeout" /> elapses.
+            </summary>
+            <param name="automationId">The exact AutomationId to find.</param>
+            <param name="scopeId">The AutomationId of an element to search under, or null to search every window.</param>
+            <param name="mainWindowOnly">True to search only the main window.</param>
+            <param name="timeout">How long to keep polling for an element that is not there yet.</param>
+            <exception cref="T:geoDC.UiDriver.DriverException">
+                Exit code 2: <c>ambiguous-match</c> as soon as more than one element matches (with candidates and the scope
+                that selects each), <c>element-not-found</c> after the timeout (with near-matches and hints), or the
+                <c>scope-not-found</c> / <c>ambiguous-match</c> of an unresolvable scope.
+            </exception>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.ResolveReady(System.String,System.String,System.Boolean,System.TimeSpan)">
+            <summary>
+                Resolves an element and then waits until it has been laid out: present in the tree, on
+                screen, and with a non-degenerate bounding rectangle.
+                <para>
+                    Existence alone is a weak readiness signal. WPF adds an element to the automation tree
+                    when it is created, which can be before measure and arrange. <c>IsOffscreen</c> and
+                    <c>BoundingRectangle</c> are only meaningful afterwards, so requiring both means the
+                    element occupies space on screen, which is what a script waiting to take a screenshot
+                    needs. It does not check whether the data inside has finished arriving. Content that
+                    animates or streams never settles, so a wait that required it to would hang.
+                </para>
+                <para>Both phases share one budget, so this cannot take materially longer than
+                <paramref name="timeout" />.</para>
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.WaitFor(System.String,System.String,geoDC.UiDriver.WaitConditions,System.TimeSpan)">
+            <summary>
+                Polls until the element identified by <paramref name="automationId" /> satisfies
+                <paramref name="conditions" />, returning its final observed state(s).
+                <para>
+                    Unlike <see cref="M:geoDC.UiDriver.ElementResolver.Resolve(System.String,System.String,System.Boolean,System.TimeSpan)" />, absence is an ordinary observation here rather than an error: it is the
+                    goal of <c>--gone</c>, and for a state condition the element may simply not have appeared yet. A
+                    missing <paramref name="scopeId" /> is treated the same way, since a closed popup takes its scope
+                    anchor with it. Every poll re-searches the tree instead of trusting a held handle: a removed element's
+                    handle is not guaranteed to fail fast, WPF can replace a control while the old handle stays readable,
+                    and a second match appearing mid-wait must still fail as ambiguous.
+                </para>
+                On timeout throws <c>wait-timeout</c> carrying the last observation as <c>error.state</c>.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.TryReadLayout(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>True/false when the element could be read; null when it has gone stale.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.ResolveItemByName(FlaUI.Core.AutomationElements.AutomationElement,System.String,System.String,System.TimeSpan)">
+            <summary>
+                Resolves an actionable item inside a container by its UIA Name. Data-bound list and tree
+                items have no AutomationId (their Name comes from ToString overrides), so Name is the only
+                way to address them. Matches are tried in this order: exact (ordinal), exact
+                (case-insensitive), then a unique substring (case-insensitive). Actionable means
+                SelectionItem, Invoke or Toggle, because geoDC "lists" are often ItemsControls whose real
+                action is a button inside the item. When an item and its inner button share the name, the
+                one that supports SelectionItem wins. Virtualized items that were never realized are
+                invisible to UIA and cannot be matched.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.DiagnoseNotFound(System.Collections.Generic.IReadOnlyList{FlaUI.Core.AutomationElements.AutomationElement},System.String,System.String,System.String,System.Boolean)">
+            <summary>
+                Reads what a not-found error reports from the searched <paramref name="roots" />: the closest
+                AutomationIds (as <c>candidates</c>, described, and as bare ids in the hints), the windows that hold the
+                id outside a narrowed search, the scroll containers a virtualized item could hide in, and the hint.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.DiagnoseAbsent(System.String,System.String,System.Boolean)">
+            <summary>
+                Hints for a wait or assert whose element was absent throughout: the not-found diagnosis of the element,
+                or of the scope when the scope itself was missing. Null when the tree changed under the diagnosis.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.DiagnoseAmbiguous(System.Collections.Generic.IReadOnlyList{FlaUI.Core.AutomationElements.AutomationElement})">
+            <summary>
+                Each ambiguous match with the ancestor that scopes to it alone. Uniqueness is checked across every
+                window, because <c>--scope</c> resolves across every window.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.FindElsewhere(System.String,System.Boolean)">
+            <summary>
+                The <c>--window</c> selectors of the windows that hold <paramref name="automationId" />, searching every
+                window. Each match is attributed to its nearest window ancestor, since an owned popup also appears under
+                its owner in UIA. <paramref name="excludeMain" /> drops the main window, for a <c>--main-window</c> search
+                that already looked there.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.CollectScrollContainer(FlaUI.Core.AutomationElements.AutomationElement,System.String,System.Collections.Generic.List{System.String},System.Collections.Generic.List{System.String})">
+            <summary>
+                Adds <paramref name="id" /> to <paramref name="lists" /> (List, DataGrid, Tree, Table) or
+                <paramref name="panes" /> (a ScrollViewer appears as a Pane) when the element can scroll, keeping a few
+                of each. These are the containers whose virtualized items exist only once scrolled into view.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.SearchRoots(System.String,System.Boolean,System.Boolean)">
+            <summary>
+                The roots an AutomationId is searched under: the <paramref name="scopeId" /> element, or else every
+                top-level window (the main window only under <paramref name="mainWindowOnly" />). Throws
+                <c>scope-not-found</c> or <c>ambiguous-match</c> when the scope does not resolve to one element.
+            </summary>
+            <param name="scopeId">The exact AutomationId of the element to search under, or null to search the windows.</param>
+            <param name="mainWindowOnly">
+                True to search only the main window, both for the scope element and, without a scope, as the only root.
+            </param>
+            <param name="diagnose">
+                False for a caller that polls and treats a missing scope as an observation: the scope-not-found error
+                then carries no candidates or hints, which would cost a sweep of every window on each poll.
+            </param>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.AncestorChain(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>Ancestor chain of AutomationIds, innermost last, such as "SurveyPage &gt; CommandBar".</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.AncestorIds(FlaUI.Core.AutomationElements.AutomationElement,System.Int32)">
+            <summary>
+                The non-empty AutomationIds of the element's ancestors within its process, innermost first, stopping
+                after <paramref name="limit" /> ids.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.TopLevelAncestor(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>
+                The window containing the element: the nearest Window ancestor, not the outermost one. An owned
+                window (every detached or immersive popup) is parented under its owner in UIA, so walking to the
+                process root would name the main window and a capture would render main-window pixels where the
+                popup was asked for.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.NearestScrollableAncestor(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>
+                The nearest ancestor exposing a usable ScrollPattern, or null when the element sits in no
+                scroll container. WPF grants ScrollItemPattern only to generated item containers, so a plain
+                layout panel can only be revealed by scrolling the viewport that owns it.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ElementResolver.Describe(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>
+                A one-line label for <paramref name="element" /> in an error's candidate list:
+                <c>id (ControlType, ancestor &gt; chain)</c>, with <c>—</c> for a missing AutomationId and the chain left out
+                when no ancestor has an id. Reads UIA properties of the live element.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.ForegroundGuard">
+            <summary>
+                Keeps a passive-launched app out of the developer's way across one UI driver step.
+                <para>
+                    Opening a window without activation is not enough on its own. Steps can still pull the app forward:
+                    a UIA <c>SetFocus</c> fallback, a combo expand, a popup restoring keyboard focus, or a WebView2 chart
+                    claiming focus as it loads. Instead of handling each case, the guard notes who owned the foreground
+                    before the step, hands it back if the app took it, and puts the app's windows (including popups
+                    opened by the step) under everything else. Screenshots are unaffected, because PrintWindow captures
+                    occluded windows.
+                </para>
+                <para>
+                    The guard only runs in passive sessions. An active launch may come forward and is never pushed back.
+                    Verbs that need the foreground (<c>key</c>) refuse to run in a passive session, so no step there has a
+                    legitimate reason to take it.
+                </para>
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ForegroundGuard.Begin(geoDC.UiDriver.GeoDcSession)">
+            <summary>Starts guarding a step, or returns null when the session is not passive.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ForegroundGuard.End(System.String)">
+            <summary>Restores the foreground if the step took it, and sends the app's windows to the back.</summary>
+        </member>
+        <member name="T:geoDC.UiDriver.GeoDcSession">
+            <summary>
+                Connection to the driver's instance: the geoDC process recorded in the worktree's instance file. The app is
+                single-instance (mutex), but unrelated app or sample processes are ignored. It works purely across the process
+                boundary (UIA and Win32) and links no geoDC assembly.
+            </summary>
+        </member>
+        <member name="F:geoDC.UiDriver.GeoDcSession.BackgroundLaunchVariable">
+            <summary>
+                Mirrors <c>geoDC.App.UI.Controls.BackgroundLaunch.EnvironmentVariable</c>. The UI driver links no geoDC
+                assembly, so the name is duplicated here.
+            </summary>
+        </member>
+        <member name="P:geoDC.UiDriver.GeoDcSession.Target">
+            <summary>The application this session is connected to.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.GeoDcSession.Automation">
+            <summary>The UIA3 automation instance every element read goes through; owned and disposed by the session.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.GeoDcSession.Process">
+            <summary>
+                The driver's instance process; owned and disposed by the session. Call <c>Refresh</c> before reading live
+                state.
+            </summary>
+        </member>
+        <member name="P:geoDC.UiDriver.GeoDcSession.Launched">
+            <summary>True when this invocation started the process; false when it attached to a running instance.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.GeoDcSession.ProjectPath">
+            <summary>
+                The full path of the project package this invocation launched the process with, or null when it attached to
+                an existing instance or the target opens no package.
+            </summary>
+        </member>
+        <member name="P:geoDC.UiDriver.GeoDcSession.Passive">
+            <summary>
+                True when the driver's instance was launched with <c>--passive</c>: its windows never take the
+                foreground, <see cref="T:geoDC.UiDriver.ForegroundGuard" /> hands it back after each step if anything does, and verbs
+                that need the foreground refuse to run. An active launch also starts behind the developer's windows,
+                but may then come forward and is never pushed back, so the developer can watch the run.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.Attach(geoDC.UiDriver.DriverTarget,System.Boolean,System.String,System.Nullable{System.TimeSpan},System.Boolean)">
+            <summary>
+                Connects to the driver's instance of <paramref name="target" /> (the app when null), or, when there is none
+                and <paramref name="allowLaunch" /> is true, launches the newest build of it as <see cref="M:geoDC.UiDriver.GeoDcSession.Launch(geoDC.UiDriver.DriverTarget,System.String,System.String,System.TimeSpan,System.Boolean)" /> does.
+                Attaching to a running instance keeps the passive mode it was launched with and ignores the launch options.
+            </summary>
+            <param name="target">The application to attach to; null for <see cref="F:geoDC.UiDriver.DriverTarget.App" />.</param>
+            <param name="allowLaunch">True to launch an instance when the driver has none.</param>
+            <param name="projectOverride">
+                The package a launch opens instead of the default sample project; null for the default.
+            </param>
+            <param name="launchTimeout">How long a launch waits for the main window; null for 30 seconds.</param>
+            <param name="passive">True to launch the instance in passive mode (see <see cref="P:geoDC.UiDriver.GeoDcSession.Passive" />).</param>
+            <exception cref="T:geoDC.UiDriver.DriverException">
+                <c>not-running</c> (exit code 3) when the driver has no running instance and launching is not allowed;
+                <c>app-not-found</c> (exit code 3) when there is no build to launch; or any failure of <see cref="M:geoDC.UiDriver.GeoDcSession.Launch(geoDC.UiDriver.DriverTarget,System.String,System.String,System.TimeSpan,System.Boolean)" />.
+            </exception>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.TopLevelWindows">
+            <summary>
+                All top-level windows of the geoDC process. This is the default search scope, so open typed
+                popups are visible without flags. Main window first, then the rest in z-order.
+                <para>
+                    The windows are enumerated through Win32 (see <see cref="T:geoDC.UiDriver.ProcessWindows" />), not by asking
+                    UIA for the desktop's children. The UIA route walks every window on the machine and costs
+                    6-8 s per call, paid again by every verb that resolves a window. <c>EnumWindows</c> also
+                    returns owned windows directly, so there are no owner chains to walk. The desktop's UIA
+                    children are only the <em>unowned</em> windows, and every detached or immersive popup sets
+                    <c>Owner</c>, so that query alone finds only the main window while popups are open.
+                </para>
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.FromHandle(System.IntPtr)">
+            <summary>
+                Wraps a window handle as an automation element. Returns null for handles UIA cannot or should
+                not expose, such as a window closing mid-enumeration or a helper HWND that is not a real window.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.ResolveWindow(System.String)">
+            <summary>
+                Resolves the single window a window-scoped verb acts on. Selector forms: <c>null</c> or
+                <c>main</c> (the instance's main window), <c>title:&lt;substring&gt;</c> (case-insensitive), and
+                <c>handle:0x…</c> (the handle <c>tree</c> prints, accepted back as printed). Popups are separate
+                top-level windows, so this is how a detached or immersive popup is addressed for capture or
+                keyboard input.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.ResolveInputTarget(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>
+                The window that can actually accept keyboard input, following the modal chain down from
+                <paramref name="window" />. A popup shown modally disables its owner, so a chord aimed at the
+                main window while one is open would be swallowed. Following the chain lets
+                <c>key --keys Escape</c> close a popup without the script having to name it.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.DescribeWindow(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>
+                Window identity in the same shape <c>tree</c> prints, so a candidate list can be pasted
+                straight back into <c>--window handle:…</c>.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.MainWindow">
+            <summary>
+                The driver's instance's main window. It is resolved straight from its handle, with no enumeration or
+                search, because every element verb starts here and it is the most frequent call in the UI driver.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.Dispose">
+            <inheritdoc />
+            <remarks>Releases the automation instance and the process handle; the application keeps running.</remarks>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.TryResolveExeDirectory(geoDC.UiDriver.DriverTarget)">
+            <summary>
+                Directory of the target's build output, or null when no build exists. Verbs that must work
+                without a running instance (kill, logs) use it.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.FindInstance(geoDC.UiDriver.DriverTarget)">
+            <summary>
+                The driver's instance of <paramref name="target" /> if it is still the process the UI driver launched, else
+                null.
+                The caller disposes it. Unlike <see cref="M:geoDC.UiDriver.GeoDcSession.Attach(geoDC.UiDriver.DriverTarget,System.Boolean,System.String,System.Nullable{System.TimeSpan},System.Boolean)" />, it creates no automation instance and never launches.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.Launch(geoDC.UiDriver.DriverTarget,System.String,System.String,System.TimeSpan,System.Boolean)">
+            <summary>
+                Launches <paramref name="exePath" /> as the driver's instance of the target and waits up to
+                <paramref name="timeout" /> for its main window. For a target that opens a project package, it opens
+                <paramref name="projectOverride" /> (relative to the <see cref="T:geoDC.UiDriver.DriverHome" />), or the default sample
+                project when that is null. It first clears a lock left behind by a previous holder that has gone, and the
+                app runs against a fresh copy of the package's Shore Control Register (<see cref="T:geoDC.UiDriver.DriverRegister" />).
+            </summary>
+            <exception cref="T:geoDC.UiDriver.DriverException">
+                <c>sample-project-missing</c>, <c>project-locked</c>, <c>register-busy</c>, <c>launch-failed</c>,
+                <c>instance-write-failed</c> or <c>launch-timeout</c>, all with exit code 3; <c>bad-arguments</c> for a
+                package passed to a target that opens none.
+            </exception>
+        </member>
+        <member name="M:geoDC.UiDriver.GeoDcSession.WriteTimeUtc(System.String)">
+            <summary>The last write time of <paramref name="path" />, or null when the file does not exist.</summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Interactions">
+            <summary>
+                Pattern-based interaction. Actions use UIA patterns, not coordinate clicks, so they work on
+                scrolled-away elements and do not depend on layout.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Interactions.Click(FlaUI.Core.AutomationElements.AutomationElement,System.String)">
+            <summary>Invoke, falling back to Toggle / SelectionItem for control types that expose those instead.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Interactions.TryExpand(FlaUI.Core.AutomationElements.AutomationElement,FlaUI.Core.AutomationElements.AutomationElement,System.Boolean)">
+            <summary>
+                Expands a collapsed ExpandCollapse container (e.g. a ComboBox) so its items realize,
+                focusing its top-level window first, because WPF dropdowns close as soon as the window loses
+                foreground. Returns whether an expand actually happened. A passive launch never gives up the
+                foreground, so there the expand is refused rather than attempted.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Interactions.SelectItem(FlaUI.Core.AutomationElements.AutomationElement,System.String)">
+            <summary>
+                Acts on a name-resolved item: SelectionItemPattern.Select when supported, otherwise the
+                standard click fallback chain (Invoke/Toggle/ExpandCollapse). Scrolls into view first
+                when possible so a follow-up screenshot shows the item.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Interactions.SendKeys(System.String)">
+            <summary>
+                Sends one key chord (e.g. "Escape", "Ctrl+S") to whatever currently has keyboard focus.
+                The caller is responsible for bringing a geoDC window to the foreground first.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Interactions.SetText(FlaUI.Core.AutomationElements.AutomationElement,System.String,System.String,System.Boolean)">
+            <summary>
+                ValuePattern.SetValue, falling back to focus + keystrokes only when the pattern is absent. Keystrokes need
+                the foreground, so a passive launch refuses that fallback.
+            </summary>
+        </member>
+        <member name="F:geoDC.UiDriver.Interactions.NoScroll">
+            <summary>UIA's sentinel for "this axis does not scroll", required by SetScrollPercent.</summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Interactions.ScrollResult">
+            <summary>
+                What <see cref="M:geoDC.UiDriver.Interactions.Scroll(FlaUI.Core.AutomationElements.AutomationElement,System.String,System.String,System.String)" /> did, with the UIA scroll percentages (0 to 100, or -1 for an axis that does not
+                scroll) read before and after.
+            </summary>
+            <param name="Direction">The lower-case direction: <c>up</c>, <c>down</c>, <c>left</c>, <c>right</c>, <c>top</c> or <c>bottom</c>.</param>
+            <param name="Amount">The lower-case increment, <c>small</c> or <c>large</c>, or <c>endpoint</c> for <c>top</c> and <c>bottom</c>.</param>
+            <param name="HorizontalPercentBefore">The horizontal scroll percentage before scrolling.</param>
+            <param name="HorizontalPercentAfter">The horizontal scroll percentage after scrolling.</param>
+            <param name="VerticalPercentBefore">The vertical scroll percentage before scrolling.</param>
+            <param name="VerticalPercentAfter">The vertical scroll percentage after scrolling.</param>
+        </member>
+        <member name="M:geoDC.UiDriver.Interactions.ScrollResult.#ctor(System.String,System.String,System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+                What <see cref="M:geoDC.UiDriver.Interactions.Scroll(FlaUI.Core.AutomationElements.AutomationElement,System.String,System.String,System.String)" /> did, with the UIA scroll percentages (0 to 100, or -1 for an axis that does not
+                scroll) read before and after.
+            </summary>
+            <param name="Direction">The lower-case direction: <c>up</c>, <c>down</c>, <c>left</c>, <c>right</c>, <c>top</c> or <c>bottom</c>.</param>
+            <param name="Amount">The lower-case increment, <c>small</c> or <c>large</c>, or <c>endpoint</c> for <c>top</c> and <c>bottom</c>.</param>
+            <param name="HorizontalPercentBefore">The horizontal scroll percentage before scrolling.</param>
+            <param name="HorizontalPercentAfter">The horizontal scroll percentage after scrolling.</param>
+            <param name="VerticalPercentBefore">The vertical scroll percentage before scrolling.</param>
+            <param name="VerticalPercentAfter">The vertical scroll percentage after scrolling.</param>
+        </member>
+        <member name="P:geoDC.UiDriver.Interactions.ScrollResult.Direction">
+            <summary>The lower-case direction: <c>up</c>, <c>down</c>, <c>left</c>, <c>right</c>, <c>top</c> or <c>bottom</c>.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Interactions.ScrollResult.Amount">
+            <summary>The lower-case increment, <c>small</c> or <c>large</c>, or <c>endpoint</c> for <c>top</c> and <c>bottom</c>.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Interactions.ScrollResult.HorizontalPercentBefore">
+            <summary>The horizontal scroll percentage before scrolling.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Interactions.ScrollResult.HorizontalPercentAfter">
+            <summary>The horizontal scroll percentage after scrolling.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Interactions.ScrollResult.VerticalPercentBefore">
+            <summary>The vertical scroll percentage before scrolling.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Interactions.ScrollResult.VerticalPercentAfter">
+            <summary>The vertical scroll percentage after scrolling.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Interactions.Scroll(FlaUI.Core.AutomationElements.AutomationElement,System.String,System.String,System.String)">
+            <summary>
+                Scrolls a UIA Scroll provider by a small/large increment or directly to its vertical endpoint.
+                Direction is semantic rather than coordinate-based, so it remains stable across DPI and layout changes.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Interactions.ScrollIntoView(FlaUI.Core.AutomationElements.AutomationElement,System.String,geoDC.UiDriver.ElementResolver,System.Boolean)">
+            <summary>
+                Brings an element into view through ScrollItemPattern. Focus is a useful fallback for focusable WPF
+                controls because SetFocus asks their owning ScrollViewer to reveal them. Neither works for a plain
+                layout panel: WPF grants ScrollItemPattern only to generated item containers (ListBoxItem,
+                DataGridRow, TreeViewItem), and layout panels take no focus. So the last strategy drives the owning
+                viewport's ScrollPattern directly, converting the element's screen bounds into a scroll percentage.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Interactions.ScrollViewportTo(FlaUI.Core.AutomationElements.AutomationElement,FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>
+                Scrolls <paramref name="viewport" /> until <paramref name="element" /> is fully visible, leaving a
+                small margin so the element is not flush against the edge. It runs a few passes, because revealing
+                content can change layout (wrapping panels re-flow, virtualized rows realize) and move the target.
+                Re-measuring after each scroll converges where a single computed jump would not.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.PassiveMode">
+            <summary>
+                The one refusal every foreground-dependent action gives in a passive launch. A passive app never takes the
+                foreground, so typing or focusing would either fail or pull it forward. The refusal tells the caller how to
+                get an active launch, so the step does not silently do something else.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.PassiveMode.Refusal(System.String)">
+            <summary>
+                The <c>passive-mode</c> error (exit code 2) for <paramref name="action" />, telling the caller to relaunch in
+                active mode. The caller throws it.
+            </summary>
+            <param name="action">What was refused, as the message's subject, such as <c>key</c>.</param>
+        </member>
+        <member name="T:geoDC.UiDriver.PausePromptWindow">
+            <summary>
+                The <see cref="T:geoDC.UiDriver.IPausePrompt" /> a developer sees: a small topmost window owned by the UI driver process, not by
+                geoDC, naming the step and what to check, with a note box and Continue and Fail buttons. It runs on a thread
+                of its own with its own dispatcher, so geoDC stays fully usable while the UI driver waits. Closing the window
+                counts as Fail, and the request's timeout closes it as <see cref="F:geoDC.UiDriver.PauseVerdict.TimedOut" />.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.PausePromptWindow.Ask(geoDC.UiDriver.PauseRequest)">
+            <inheritdoc />
+            <exception cref="T:geoDC.UiDriver.DriverException"><c>pause-failed</c> (exit code 1) when the window could not be shown.</exception>
+        </member>
+        <member name="T:geoDC.UiDriver.ProcessWindows">
+            <summary>
+                Win32 enumeration of a process's visible top-level windows.
+                <para>
+                    This exists to keep UIA off the hot path. Asking UIA for the desktop's children and
+                    filtering by process id makes the provider walk every top-level window on the machine,
+                    reading properties cross-process on each. That was measured at 6-8 seconds per call, paid
+                    again by every verb that resolves a window. <c>EnumWindows</c> answers the same question
+                    in-process in microseconds, and the handles it returns convert straight to automation
+                    elements via <c>FromHandle</c>, which is a single direct call rather than a search.
+                </para>
+                <para>
+                    Owned windows are included: <c>EnumWindows</c> enumerates every top-level window,
+                    owned or not, which is what makes detached and immersive popups visible here. Invisible
+                    helper windows (WPF creates several per process) are filtered out. Message-only windows
+                    are not enumerated in the first place.
+                </para>
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.ProcessWindows.VisibleTopLevel(System.Int32)">
+            <summary>
+                The handles of the visible top-level windows, owned or not, that belong to process
+                <paramref name="processId" />, in the z-order <c>EnumWindows</c> reports (topmost first). Empty when the
+                process has none or has exited.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Program">
+            <summary>
+                The <c>geodc-ui</c> entry point: takes the output options out of the arguments, runs the verb from
+                <see cref="T:geoDC.UiDriver.Verbs.VerbTable" />, and turns a failure into the verb's failure line and exit code.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Program.Run(System.String[],System.String)">
+            <summary>
+                Runs the verb that <paramref name="args" /> starts with. A verb that parses its own arguments gets them
+                whole. For any other verb, the arguments are parsed as options and a warning is added when the target's
+                build is newer than the running instance. The verb then runs on its own, or attaches and runs as a session
+                verb.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.SampleProjectGenerator">
+            <summary>
+                Runs the test-data generator CLI for <c>sample create</c>, as <c>dotnet run --project
+                tools/geoDC.TestDataGenerator.Cli</c> from the working directory, so the driver needs no reference to geoDC's
+                assemblies. Nothing the generator prints reaches the UI driver's stdout, which stays one JSON line. The output
+                is collected for the sample project's provenance and recorded in the run's
+                <see cref="T:geoDC.UiDriver.SampleProjectCreateLog" />. When the run fails, its last lines also go in the error.
+            </summary>
+        </member>
+        <member name="F:geoDC.UiDriver.SampleProjectGenerator.ProjectPath">
+            <summary>The generator project, relative to the repository root.</summary>
+        </member>
+        <member name="F:geoDC.UiDriver.SampleProjectGenerator.Timeout">
+            <summary>
+                How long a run, including the build <c>dotnet run</c> does first, may take before it is stopped.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.SampleProjectGenerator.Run(geoDC.UiDriver.DriverSampleProject,System.String,geoDC.UiDriver.SampleProjectCreateLog)">
+            <summary>
+                Generates <paramref name="sampleProject" /> into <paramref name="stagingDirectory" /> and returns what it
+                printed, recording the command, its output, exit code and elapsed time in <paramref name="log" />.
+            </summary>
+            <exception cref="T:geoDC.UiDriver.DriverException">
+                <c>sample-project-generator-not-started</c> when <c>dotnet</c> cannot be started;
+                <c>sample-project-generator-timeout</c> when the run passes <see cref="F:geoDC.UiDriver.SampleProjectGenerator.Timeout" />;
+                <c>sample-project-generator-failed</c> when it exits with an error.
+            </exception>
+        </member>
+        <member name="T:geoDC.UiDriver.ScreenshotCapture">
+            <summary>
+                What <see cref="M:geoDC.UiDriver.Screenshotter.CaptureWindow(FlaUI.Core.AutomationElements.AutomationElement,System.Nullable{System.Drawing.Rectangle},geoDC.UiDriver.ScreenshotOptions,System.Collections.Generic.IReadOnlyList{geoDC.UiDriver.HighlightTarget},System.String)" /> wrote.
+            </summary>
+            <param name="Path">The PNG file.</param>
+            <param name="Width">Written image width in pixels, after any downscale.</param>
+            <param name="Height">Written image height in pixels, after any downscale.</param>
+            <param name="OriginalWidth">Captured region width in surface pixels, before any downscale.</param>
+            <param name="OriginalHeight">Captured region height in surface pixels, before any downscale.</param>
+            <param name="Scale">Output pixels per captured pixel; 1 when not downscaled.</param>
+            <param name="PadPixels">The <c>--pad</c> applied to each side, in physical pixels, before clamping to the window.</param>
+            <param name="Highlights">Where each requested highlight landed, in request order.</param>
+        </member>
+        <member name="M:geoDC.UiDriver.ScreenshotCapture.#ctor(System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Double,System.Int32,System.Collections.Generic.IReadOnlyList{geoDC.UiDriver.HighlightPlacement})">
+            <summary>
+                What <see cref="M:geoDC.UiDriver.Screenshotter.CaptureWindow(FlaUI.Core.AutomationElements.AutomationElement,System.Nullable{System.Drawing.Rectangle},geoDC.UiDriver.ScreenshotOptions,System.Collections.Generic.IReadOnlyList{geoDC.UiDriver.HighlightTarget},System.String)" /> wrote.
+            </summary>
+            <param name="Path">The PNG file.</param>
+            <param name="Width">Written image width in pixels, after any downscale.</param>
+            <param name="Height">Written image height in pixels, after any downscale.</param>
+            <param name="OriginalWidth">Captured region width in surface pixels, before any downscale.</param>
+            <param name="OriginalHeight">Captured region height in surface pixels, before any downscale.</param>
+            <param name="Scale">Output pixels per captured pixel; 1 when not downscaled.</param>
+            <param name="PadPixels">The <c>--pad</c> applied to each side, in physical pixels, before clamping to the window.</param>
+            <param name="Highlights">Where each requested highlight landed, in request order.</param>
+        </member>
+        <member name="P:geoDC.UiDriver.ScreenshotCapture.Path">
+            <summary>The PNG file.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.ScreenshotCapture.Width">
+            <summary>Written image width in pixels, after any downscale.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.ScreenshotCapture.Height">
+            <summary>Written image height in pixels, after any downscale.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.ScreenshotCapture.OriginalWidth">
+            <summary>Captured region width in surface pixels, before any downscale.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.ScreenshotCapture.OriginalHeight">
+            <summary>Captured region height in surface pixels, before any downscale.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.ScreenshotCapture.Scale">
+            <summary>Output pixels per captured pixel; 1 when not downscaled.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.ScreenshotCapture.PadPixels">
+            <summary>The <c>--pad</c> applied to each side, in physical pixels, before clamping to the window.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.ScreenshotCapture.Highlights">
+            <summary>Where each requested highlight landed, in request order.</summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Screenshotter">
+            <summary>
+                Captures a top-level window via <c>PrintWindow(PW_RENDERFULLCONTENT)</c>. The image comes from
+                the compositor, so it works while the window is occluded and includes DirectX and WebView2
+                surfaces as pixels. CopyFromScreen is not used. All coordinates are physical pixels (the UI
+                driver is PerMonitorV2 DPI-aware, so Win32 and UIA both report physical pixels to it).
+                Cropping, downscaling and highlight outlines are applied to the captured pixels only. Nothing
+                is drawn into the app.
+            </summary>
+        </member>
+        <member name="F:geoDC.UiDriver.Screenshotter.HighlightColor">
+            <summary>Highlight outline colour: magenta, which no geoDC theme uses, so it is clearly an annotation.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Screenshotter.CaptureWindow(FlaUI.Core.AutomationElements.AutomationElement,System.Nullable{System.Drawing.Rectangle},geoDC.UiDriver.ScreenshotOptions,System.Collections.Generic.IReadOnlyList{geoDC.UiDriver.HighlightTarget},System.String)">
+            <summary>
+                Captures <paramref name="window" />, crops it to <paramref name="windowRelativeCrop" /> (grown by
+                <see cref="P:geoDC.UiDriver.ScreenshotOptions.PadDips" />), downscales it to <see cref="P:geoDC.UiDriver.ScreenshotOptions.MaxWidth" />,
+                outlines <paramref name="highlights" />, and writes a PNG.
+            </summary>
+            <param name="window">The top-level window to capture.</param>
+            <param name="windowRelativeCrop">Window-relative physical pixels, or null for the whole window.</param>
+            <param name="options">Padding and output width; its highlight ids are already resolved into
+                <paramref name="highlights" />.</param>
+            <param name="highlights">Elements to outline, in the order to report them.</param>
+            <param name="outPath">
+                Destination PNG, relative to the <see cref="T:geoDC.UiDriver.DriverHome" /> when not rooted, or null for a timestamped file
+                under <c>.ui-driver/screenshots</c>. The capture reports the path as given.
+            </param>
+            <exception cref="T:geoDC.UiDriver.DriverException">
+                <c>no-window-handle</c>, <c>capture-failed</c>, or <c>region-out-of-bounds</c> when the crop misses the window.
+            </exception>
+        </member>
+        <member name="M:geoDC.UiDriver.Screenshotter.ElementCrop(FlaUI.Core.AutomationElements.AutomationElement,FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>Screen-physical-pixel element bounds converted to window-relative pixels.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Screenshotter.SurfaceScale(System.IntPtr)">
+            <summary>
+                Ratio of the window's backing-surface pixels to physical screen pixels: 1.0 for a per-monitor-aware
+                window, and windowDpi/monitorDpi otherwise.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Screenshotter.PhysicalPixelsPerDip(System.IntPtr)">
+            <summary>
+                Physical screen pixels per device-independent pixel of the app: the monitor's effective DPI over 96, which
+                holds whether the window scales itself (per-monitor aware) or DWM scales it. Falls back to the window's DPI,
+                then to 1.0.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Screenshotter.MonitorDpi(System.IntPtr)">
+            <summary>The effective DPI of the monitor nearest the window, or 0 when it cannot be read.</summary>
+        </member>
+        <member name="T:geoDC.UiDriver.StaleBuildCheck">
+            <summary>
+                Compares the driver's instance with its build output on disk (see <see cref="M:geoDC.UiDriver.BuildStaleness.Collect(System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.String})" /> for the
+                files that count), so a command never silently drives an app older than the code it is meant to verify.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.StaleBuildCheck.Evaluate(geoDC.UiDriver.DriverTarget,geoDC.UiDriver.DriverInstanceRecord)">
+            <summary>How the driver's instance compares with its build output.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.StaleBuildCheck.WarningFor(System.String)">
+            <summary>
+                <see cref="F:geoDC.UiDriver.BuildStaleness.Warning" /> when the driver's instance of the target is running and stale,
+                otherwise null. A stale instance is also described on stderr. An unknown target, a missing or dead instance,
+                or unreadable build output gives no warning instead of an exception, so the command it decorates still
+                reports its own result.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.TreeDumper">
+            <summary>
+                Walks the UIA control view into <see cref="T:geoDC.UiDriver.UiaNodeSnapshot" /> trees, either in full or as the interactable
+                outline, and renders them as an indented, greppable text dump. Each element is read once, so a node that
+                changes mid-walk is printed as it was when reached.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.TreeDumper.#ctor(geoDC.UiDriver.GeoDcSession)">
+            <summary>
+                Walks the UIA control view into <see cref="T:geoDC.UiDriver.UiaNodeSnapshot" /> trees, either in full or as the interactable
+                outline, and renders them as an indented, greppable text dump. Each element is read once, so a node that
+                changes mid-walk is printed as it was when reached.
+            </summary>
+        </member>
+        <member name="P:geoDC.UiDriver.TreeDumper.WalkedCount">
+            <summary>The number of elements read from UIA since this dumper was created.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.TreeDumper.ReadWindows(System.Collections.Generic.IReadOnlyList{FlaUI.Core.AutomationElements.AutomationElement},geoDC.UiDriver.TreeOptions)">
+            <summary>
+                Reads each window's subtree to <see cref="P:geoDC.UiDriver.TreeOptions.Depth" />, reduced to the interactable outline when
+                <see cref="P:geoDC.UiDriver.TreeOptions.Interactable" /> is set: the roots <see cref="M:geoDC.UiDriver.TreeDumper.Render(System.Collections.Generic.IReadOnlyList{geoDC.UiDriver.UiaNodeSnapshot},System.Boolean)" /> prints.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.TreeDumper.Read(FlaUI.Core.AutomationElements.AutomationElement,geoDC.UiDriver.TreeOptions)">
+            <summary>Reads one element's subtree as <see cref="M:geoDC.UiDriver.TreeDumper.ReadWindows(System.Collections.Generic.IReadOnlyList{FlaUI.Core.AutomationElements.AutomationElement},geoDC.UiDriver.TreeOptions)" /> reads a window's.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.TreeDumper.WindowHeaders(System.Collections.Generic.IReadOnlyList{FlaUI.Core.AutomationElements.AutomationElement})">
+            <summary>One <c>Window: "title" handle=0x… class=…</c> line per window, as a whole-window dump starts.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.TreeDumper.Render(System.Collections.Generic.IReadOnlyList{geoDC.UiDriver.UiaNodeSnapshot},System.Boolean)">
+            <summary>
+                Prints <paramref name="roots" /> one indented line per node, with a blank line before each root when
+                <paramref name="separateRoots" /> is set.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.TreeDumper.Find(System.Collections.Generic.IReadOnlyList{FlaUI.Core.AutomationElements.AutomationElement},geoDC.UiDriver.FindCriteria)">
+            <summary>
+                Walks each root's whole subtree and returns the nodes matching <paramref name="criteria" />; see
+                <see cref="M:geoDC.UiDriver.UiaTreeFilter.Find(System.Collections.Generic.IEnumerable{geoDC.UiDriver.UiaNodeSnapshot},geoDC.UiDriver.FindCriteria)" />.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.TreeDumper.ReadSubtrees(System.Collections.Generic.IReadOnlyList{FlaUI.Core.AutomationElements.AutomationElement})">
+            <summary>Reads each root's whole subtree with no depth limit and no filtering, as <c>find</c> and <c>audit</c> walk it.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.TreeDumper.ReadState(FlaUI.Core.AutomationElements.AutomationElement,System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+                Current state of the stateful supported patterns, so "did settext take?" / "which tab is selected?" are
+                answerable from the dump without a screenshot.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.TreeDumper.ReadPatterns(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>The supported patterns, named and ordered as in <see cref="F:geoDC.UiDriver.UiaNodeSnapshot.PatternNames" />.</summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Verbs.ActionVerbs">
+            <summary>
+                The verbs that drive the app: <c>click</c>, <c>settext</c>, <c>select</c>, <c>scroll</c>, <c>scrollto</c> and
+                <c>key</c>, with the <c>--await</c> and <c>--await-gone</c> checks that follow an action.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.ActionVerbs.Select(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs,System.Nullable{System.Int32})">
+            <summary>
+                Selects a data-bound item (no AutomationId) inside a container by UIA Name. The names come
+                from the view-models' ToString overrides. `select --id JobList --item "Stage 2"`.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.ActionVerbs.RunAwaits(geoDC.UiDriver.ElementResolver,geoDC.UiDriver.AwaitPlan,System.String)">
+            <summary>
+                Runs an action verb's <c>--await-gone</c> / <c>--await</c> waits after the action, so the action and the
+                proof it landed are one step. Await targets resolve across every window, ignoring the action's
+                <c>--scope</c>: what an action opens usually lives somewhere else (a popup is its own window). A failed
+                await fails the step with the wait's own error code, but says that the action itself already happened.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Verbs.CheckVerbs">
+            <summary>
+                The verbs that wait for or check a state rather than change it: <c>wait</c>, <c>assert</c> and <c>settle</c>.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.CheckVerbs.Wait(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs,System.Nullable{System.Int32})">
+            <summary>
+                Waits until an element meets a condition. With no condition flag, the element must be present and laid
+                out. Use this instead of guessing a <c>settle</c> duration before a screenshot: the script names the
+                element whose appearance shows the view has arrived, and waits only as long as that takes. The flags
+                (<c>--gone</c>, <c>--enabled</c>, <c>--disabled</c>, <c>--value-matches</c>, <c>--toggled</c>,
+                <c>--selected</c>, <c>--expanded</c>) cover the other things a script would otherwise sleep through:
+                a popup closing, a command becoming available, a value loading.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.CheckVerbs.Assert(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs,System.Nullable{System.Int32})">
+            <summary>
+                Checks that an element meets a condition now. The conditions are the same as for <c>wait</c>, polled once
+                by default (<c>--timeout</c> allows a grace period). A failure is <c>assert-failed</c>, with the expected
+                conditions in the message and the observed state as <c>error.state</c>. Inside <c>do</c> it stops the run
+                like any failed step.
+                With no condition flag it asserts the element is laid out, as a bare <c>wait</c> does.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Verbs.DoVerb">
+            <summary>
+                <c>do</c>: runs steps against one attached instance, and the step execution every session verb shares, whether
+                it runs alone or as a step.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.DoVerb.Run(System.String[],System.String)">
+            <summary>
+                Runs several steps against one shared session: `do [--target t] click --id A ++ settext --id B --value x`,
+                or `do [--target t] --file script.ui [--var name=value ...]` for a checked-in script (see
+                <see cref="T:geoDC.UiDriver.DoInvocation" /> for its grammar). It prints one JSON line per executed step (1-based `step`
+                field). It stops at the first failure and exits with that step's exit code, so later steps are not
+                reported. A final summary line counts the steps run and passed and gives the first failure.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.DoVerb.RunSteps(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.DoInvocation)">
+            <summary>
+                Runs a parsed <c>do</c> invocation's steps against <paramref name="session" />, one JSON line each (with
+                <c>from</c> when the step came from a script), then the summary line. Stops at the first failure and returns
+                its exit code, or 0 when every step passed.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.DoVerb.RunPause(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs,System.Int32,System.Boolean,System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+                Runs a <c>pause</c> step (see <see cref="T:geoDC.UiDriver.PauseStep" />). In an interactive run it first brings geoDC's main
+                window forward, since a passive session keeps it behind other windows, and it runs outside
+                <see cref="T:geoDC.UiDriver.ForegroundGuard" />: while paused the developer owns the foreground, and the app must not be
+                pushed back when they answer.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.DoVerb.ExecuteStep(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs,System.Nullable{System.Int32})">
+            <summary>
+                Runs a session verb against <paramref name="session" />, alone or as step <paramref name="step" /> of a
+                <c>do</c> run, inside the trace markers and the <see cref="T:geoDC.UiDriver.ForegroundGuard" /> every session verb shares.
+                A verb that cannot run as a step fails with <c>bad-arguments</c>.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Verbs.DriverVerb">
+            <summary>
+                One verb of the <c>geodc-ui</c> command line: its name, its usage, and how it runs. A verb sets one of
+                <see cref="P:geoDC.UiDriver.Verbs.DriverVerb.Arguments" />, <see cref="P:geoDC.UiDriver.Verbs.DriverVerb.Standalone" /> or <see cref="P:geoDC.UiDriver.Verbs.DriverVerb.Step" />. A verb with
+                <see cref="P:geoDC.UiDriver.Verbs.DriverVerb.Standalone" /> may also set <see cref="P:geoDC.UiDriver.Verbs.DriverVerb.Step" /> so that it can run as a step too.
+            </summary>
+            <param name="Name">The verb as typed, in lower case.</param>
+            <param name="Usage">
+                The verb's forms for the usage message, each without the leading <c>geodc-ui</c>, or empty for a verb
+                documented only in the usage notes.
+            </param>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.DriverVerb.#ctor(System.String,System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+                One verb of the <c>geodc-ui</c> command line: its name, its usage, and how it runs. A verb sets one of
+                <see cref="P:geoDC.UiDriver.Verbs.DriverVerb.Arguments" />, <see cref="P:geoDC.UiDriver.Verbs.DriverVerb.Standalone" /> or <see cref="P:geoDC.UiDriver.Verbs.DriverVerb.Step" />. A verb with
+                <see cref="P:geoDC.UiDriver.Verbs.DriverVerb.Standalone" /> may also set <see cref="P:geoDC.UiDriver.Verbs.DriverVerb.Step" /> so that it can run as a step too.
+            </summary>
+            <param name="Name">The verb as typed, in lower case.</param>
+            <param name="Usage">
+                The verb's forms for the usage message, each without the leading <c>geodc-ui</c>, or empty for a verb
+                documented only in the usage notes.
+            </param>
+        </member>
+        <member name="P:geoDC.UiDriver.Verbs.DriverVerb.Name">
+            <summary>The verb as typed, in lower case.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Verbs.DriverVerb.Usage">
+            <summary>
+                The verb's forms for the usage message, each without the leading <c>geodc-ui</c>, or empty for a verb
+                documented only in the usage notes.
+            </summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Verbs.DriverVerb.Arguments">
+            <summary>
+                Runs the verb from the whole argument list, verb included, with the <c>--report</c> path or null, and returns
+                the exit code. For verbs that parse their own arguments: <c>do</c>, <c>rebuild</c> and <c>sample</c>.
+            </summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Verbs.DriverVerb.Standalone">
+            <summary>Runs the verb from its parsed options without attaching to an instance.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Verbs.DriverVerb.Step">
+            <summary>
+                Runs the verb against an attached instance, with the step number inside a <c>do</c> run or null when it runs
+                alone. A verb with only this set attaches before it runs. Every verb with it set can be a <c>do</c> step.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Verbs.ReadVerbs">
+            <summary>
+                The verbs that read the app without changing it: <c>tree</c>, <c>find</c>, <c>source</c>, <c>audit</c>,
+                <c>screenshot</c> and <c>logs</c>.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.ReadVerbs.Tree(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs,System.Nullable{System.Int32})">
+            <summary>
+                Dumps the UIA tree under <c>--id</c>, under <c>--scope</c> when there is no <c>--id</c>, or under the selected
+                top-level windows. <c>--interactable</c> prints only the interactable outline (see
+                <see cref="M:geoDC.UiDriver.UiaTreeFilter.KeepInteractable(geoDC.UiDriver.UiaNodeSnapshot)" />) and walks without a depth limit unless <c>--depth</c> is given.
+                <para>
+                    The tree read is stored under <c>.ui-driver/snapshots/</c>, keyed by target and the arguments that decide
+                    what is read (see <see cref="T:geoDC.UiDriver.TreeSnapshotKey" />). It prints in full, or with <c>--diff</c> only what
+                    changed since the stored snapshot for the same key (see <see cref="T:geoDC.UiDriver.UiaTreeDiff" />). A diff with no
+                    usable snapshot prints the full tree and reports <c>baseline: true</c>.
+                </para>
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.ReadVerbs.Find(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs,System.Nullable{System.Int32})">
+            <summary>
+                Searches the whole subtree under <c>--scope</c>, or under the selected top-level windows, for nodes matching
+                every given criterion, with no depth limit. Prints one <c>tree</c>-format line per match followed by
+                <c>path:</c>, the AutomationIds of its ancestors. No match is a success with <c>matches: 0</c>. Use
+                <c>assert</c> to require an element.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.ReadVerbs.Source(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs,System.Nullable{System.Int32})">
+            <summary>
+                Traces the text the app shows back to the strings files: every distinct text (Name, or a ValuePattern value)
+                in the subtree of <c>--id</c>, of <c>--scope</c> when there is no <c>--id</c>, or of the selected windows,
+                narrowed to those containing <c>--name</c>. Prints one line per text naming the element that shows it, then
+                each strings-file entry that matches it (see <see cref="T:geoDC.UiDriver.TextSourceCatalog" />) with the lines that read the
+                entry. Texts that match no entry are listed too, as data or text built in code. Finding no text is a success
+                with <c>texts: 0</c>.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.ReadVerbs.Audit(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs,System.Nullable{System.Int32})">
+            <summary>
+                Walks the whole subtree under <c>--scope</c> (or the selected windows) and checks it against the AutomationId
+                conventions (see <see cref="T:geoDC.UiDriver.AutomationAudit" />). With no findings it succeeds with <c>data.findings</c>
+                empty. Otherwise it fails with <c>audit-findings</c>, the same fields on <c>error</c>, and exit code
+                <see cref="F:geoDC.UiDriver.AutomationAudit.FindingsExitCode" />, so a <c>do</c> run stops there like a failed <c>assert</c>.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.ReadVerbs.Logs(geoDC.UiDriver.CliArgs,System.Nullable{System.Int32})">
+            <summary>
+                Tails the target's newest Serilog file (logs/geodc-*.log next to the exe, falling back to
+                ./logs). It needs no running instance, so crash logs stay readable after the process dies.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Verbs.SampleProjectVerb">
+            <summary>
+                <c>sample create</c> and <c>sample status</c>: the sample projects under <c>dev/sample-projects/</c> in the
+                <see cref="T:geoDC.UiDriver.DriverHome" />. Needs no running instance.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.SampleProjectVerb.Run(System.String[])">
+            <summary>
+                <c>sample create [--lifecycle]</c> regenerates <c>dev/sample-projects/sample.gdcproj</c> (or
+                <c>sample-lifecycle.gdcproj</c>), its Shore Control Register and its provenance file with the test-data
+                generator CLI. <c>sample status</c> reports which sample projects exist and the fingerprints that produced
+                them. Both run from the geoDC repository root, as every verb does, so the generator builds from it.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Verbs.SessionVerbs">
+            <summary>
+                The verbs that manage the attached instance rather than read or drive it: <c>attach</c>, <c>kill</c>,
+                <c>status</c> and <c>rebuild</c>.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.SessionVerbs.Kill(geoDC.UiDriver.CliArgs)">
+            <summary>
+                Kills the driver's instance (entire tree) and removes its instance file, so a later <c>rebuild</c> without
+                <c>--target</c> has nothing to repeat. Idempotent: succeeds with wasRunning=false when no instance exists.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.SessionVerbs.Status(geoDC.UiDriver.CliArgs)">
+            <summary>
+                Reports the driver's instance of the target without attaching: its process, whether it is still running,
+                how it was launched, and whether its build output on disk is newer than it (<c>stale</c>, with the newest
+                such file as <c>newerBuild</c>). A target with no instance file reports <c>hasInstance: false</c>, so this
+                verb does not fail when there is no instance.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.SessionVerbs.Rebuild(System.String[],System.String)">
+            <summary>
+                Kills the driver's instance, builds its project, and launches the build with the instance's arguments, as
+                <c>kill</c>, <c>dotnet build</c> and <c>attach --launch</c> would in turn (see <see cref="T:geoDC.UiDriver.RebuildPlan" /> for how
+                the arguments are chosen). A failed build fails with <c>build-failed</c>, its first errors as
+                <c>error.errors</c>, and leaves the app stopped. The instance file stays, so the next <c>rebuild</c> repeats
+                the same launch.
+                <para>
+                    <c>--then &lt;script&gt; [--var name=value ...]</c> runs a script against the relaunched app, as
+                    <c>do --file</c> would. Its step lines and summary follow the rebuild line, and its exit code is the
+                    command's. The script is parsed before the app is stopped, so a script that cannot run fails the
+                    command with the app untouched. A failed build skips the script, and a failing step leaves the app
+                    running.
+                </para>
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.SessionVerbs.KillInstance(geoDC.UiDriver.DriverTarget)">
+            <summary>
+                Kills the whole process tree of the driver's instance and waits for it to exit, leaving the instance file in
+                place. Returns the process id it killed, or null when the driver's instance was not running.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.SessionVerbs.DescribeSession(geoDC.UiDriver.GeoDcSession)">
+            <summary>The attached instance as <c>attach</c> reports it; <c>rebuild</c> reports its relaunch the same way.</summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Verbs.VerbTable">
+            <summary>
+                Every <c>geodc-ui</c> verb, in the order the usage message lists them. The entry point and <c>do</c> both
+                dispatch through it, and the usage message and the list of step verbs are generated from it, so a new verb is
+                one entry here.
+            </summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Verbs.VerbTable.All">
+            <summary>The verbs, in usage order.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Verbs.VerbTable.StepVerbList">
+            <summary>The step verbs as a sentence, e.g. <c>tree, find, ..., settle, or logs</c>.</summary>
+        </member>
+        <member name="P:geoDC.UiDriver.Verbs.VerbTable.Usage">
+            <summary>
+                The usage message an unknown verb fails with: every verb's forms, then the notes that define the
+                placeholders.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.VerbTable.Find(System.String)">
+            <summary>The verb named <paramref name="name" /> (already lower case), or null when there is none.</summary>
+        </member>
+        <member name="T:geoDC.UiDriver.Verbs.WindowArguments">
+            <summary>
+                How <c>--window</c>, <c>--main-window</c>, <c>--scope</c> and <c>--id</c> combine to pick the windows or
+                subtree a verb acts on.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.WindowArguments.Resolve(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs)">
+            <summary>
+                Resolves the window a window-scoped verb (screenshot, key, tree) acts on from <c>--window</c>,
+                defaulting to the main window. <c>--main-window</c> narrows element resolution instead, so the two
+                options cannot be combined.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.WindowArguments.Selected(geoDC.UiDriver.GeoDcSession,geoDC.UiDriver.CliArgs)">
+            <summary>
+                The top-level windows a whole-window <c>tree</c>, <c>find</c> or <c>audit</c> covers: <c>--window</c>, the main
+                window, or all.
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.Verbs.WindowArguments.RequireNoWindowSelector(geoDC.UiDriver.CliArgs,System.String)">
+            <summary>
+                <c>--window</c> selects a window to capture or type into. It does not narrow element resolution
+                (<c>--main-window</c> does that), so pairing it with <c>--id</c> is rejected instead of being
+                silently ignored.
+            </summary>
+        </member>
+        <member name="T:geoDC.UiDriver.WindowActivation">
+            <summary>
+                Brings another process's window to the foreground so <c>SendInput</c> keystrokes land in it.
+                <para>
+                    UIA's <c>SetFocus</c> and a bare <c>SetForegroundWindow</c> are not enough here. Windows only
+                    lets the process that already owns the foreground hand it over, and the UI driver is a console
+                    process launched from a terminal that keeps it. Attaching this thread's input queue to the
+                    current foreground thread (and to the target's) lifts that restriction for the duration of the
+                    call. This is the standard workaround. Without it the UI driver could only type into a window it
+                    had been handed the foreground for.
+                </para>
+            </summary>
+        </member>
+        <member name="M:geoDC.UiDriver.WindowActivation.Activate(FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>Activates the window and reports whether it ended up in the foreground.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.WindowActivation.Activate(System.IntPtr)">
+            <summary>Activates the window handle and reports whether it ended up in the foreground.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.WindowActivation.Foreground">
+            <summary>The window that currently owns the foreground, or <see cref="F:System.IntPtr.Zero" />.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.WindowActivation.OwningProcessId(System.IntPtr)">
+            <summary>Id of the process that owns the window; 0 when the handle is gone.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.WindowActivation.SendToBack(System.IntPtr)">
+            <summary>Moves the window to the bottom of the z-order without activating, moving, or resizing it.</summary>
+        </member>
+        <member name="M:geoDC.UiDriver.WindowActivation.IsEnabled(System.IntPtr)">
+            <summary>
+                Win32 enabled state. A window shown with <c>ShowDialog</c> disables its owner here while
+                leaving the owner's WPF/UIA <c>IsEnabled</c> true, so this is the only reading that tells a
+                modal-blocked window from one that can accept input.
+            </summary>
+        </member>
+    </members>
+</doc>
