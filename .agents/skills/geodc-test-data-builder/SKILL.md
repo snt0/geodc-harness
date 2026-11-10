@@ -19,6 +19,7 @@ Use the existing generator for connected domain data; do not hand-edit SQLite/pa
 
 - Keep the generated graph operationally valid: installations and feature states are job-scoped; calibration and verification form one cycle; GNSS checks remain diagnostic; shore control retains CRS, datum, and epoch.
 - Keep angle-series import/calculation conventions and project display conventions explicit. Exercise cross-convention behavior intentionally, not accidentally.
+- Keep the hard convention cases covered (a left-handed vessel position convention, a bow-down pitch device, a gravity-roll device), so a wrong conversion fails a test instead of only changing a label.
 - Generate physically consistent calibration/verification series through the existing motion/session model so recomputed C-O values remain meaningful.
 - Preserve the mixed lifecycle states that make the default project useful for UI and workflow testing unless the requested project needs a narrower state.
 - Express work-item state as a `ScenarioAttemptLifecycle`, which the seeder replays through domain transitions. When tests need every workflow state, readiness and outcome, use `IncludeLifecycleCoverage` rather than writing lifecycle columns.

@@ -15,7 +15,8 @@ Shared guidance for coding agents working on geoDC from this harness. Keep this 
 - Read `geodc/docs/finding-things.md` to get from text, a popup, a menu item or a grid column on screen to the files behind it.
 - Read `geodc/docs/domain-context.md` and `geodc/docs/data-model.md` before changing domain names, workflows, calculations, or persisted domain state; read `geodc/docs/data-analysis.md` before changing dataset inspection, alignment, or editing.
 - Read `geodc/docs/coding-style.md` before introducing a type shape, interface, DI registration, null-forgiving operator, or cancellable async API, and before writing XML documentation or comments.
-- Read `geodc/docs/copy-style.md` before writing or changing user-facing text, and `docs/writing-style.md` before writing or changing comments, XML documentation or pages under `geodc/docs/`.
+- Read `docs/writing.md` (in this harness) before writing comments, XML documentation or pages under `geodc/docs`.
+- Read `geodc/docs/copy-style.md` before writing or changing user-facing text.
 - Read `geodc/docs/app-layout.md` before adding, moving or renaming files in `geoDC.App` or `geoDC.App.Tests`, or adding a feature area.
 - Read `geodc/docs/shell-menus.md` before adding or changing a main menu entry, an application-wide shortcut, or when a shell command is available.
 - Read `geodc/docs/logging.md` before adding or changing log calls, and when a change adds I/O, an external process, a user-initiated operation, or a `catch`.
@@ -27,9 +28,10 @@ Shared guidance for coding agents working on geoDC from this harness. Keep this 
 - Read `geodc/docs/third-party-notices.md` before vendoring a component (JavaScript, fonts, native binaries) or adding a package whose licence metadata is missing.
 - Read `docs/cloud-sessions.md` before changing the cloud environment setup script; read `docs/cloud-sessions-claude.md` before changing the `.claude/hooks` scripts. Both are in this harness.
 - Read the relevant page of `geodc/docs/ui/` before changing shared controls (`controls.md`), themes, typed resources or foreground behavior (`theming.md`), data grids (`data-grids.md`), containers and panels (`layout.md`), notifications, feedback or application-state behaviour (`feedback.md`), popup infrastructure (`popups.md`), or the Sample gallery (`sample-gallery.md`).
-- Review `geodc/docs/code-vocabulary.md` before introducing or broadly renaming role suffixes.
+- Review `docs/code-vocabulary.md` (in this harness) before introducing or broadly renaming role suffixes.
 - Read `docs/ui-driver.md` before changing the UI driver, its scripts or its sample projects, and `docs/design-system-sync.md` before changing the gallery corpus tool or the capture scripts. Both are in this harness.
 - Read `docs/github-practices.md` before filing issues, applying labels, or opening pull requests.
+- Read the record in `docs/design/` (in this harness) before working on an issue that cites one, or on the angle and position conventions or Shore Control; it holds the dated decisions and the designed but unbuilt parts.
 
 ## Agent skills
 
@@ -42,7 +44,8 @@ The rules that apply to people and agents alike live in the human docs. Follow t
 
 - `geodc/docs/codebase.md`: the solution map and layering (dependencies point inward; the domain stays free of EF, DI, logging and UI), build and test commands, the domain rules, and an index of every convention page.
 - `geodc/docs/domain-context.md` > Rules That Hold Everywhere: the domain rules, with the reasoning behind them.
-- `geodc/docs/coding-style.md`: C# conventions, XML documentation and comments, documentation pages, and what a change checks (Making a Change).
+- `geodc/docs/coding-style.md`: C# conventions, XML documentation and comments, and what a change checks (Making a Change).
+- `docs/writing.md`: how to write comments, XML documentation and docs pages.
 - `geodc/docs/data-model.md` > Changing the Model: IDs, value objects, lifecycles, `ProjectFingerprint` coverage and audit.
 - `geodc/docs/ui/README.md` > Rules: controls, panels, theme resources, foreground roots, copy and sign wording.
 - `geodc/docs/logging.md`: where logging is expected, message grammar, levels, property names and example log calls.

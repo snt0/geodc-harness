@@ -334,9 +334,9 @@ Every `attach --launch` starts the app behind the user's windows (`ShowActivated
 
 ## Apply automation conventions
 
-Check a surface against these conventions with `audit` rather than by reading a tree dump; see *Audit automation conventions* below. The role vocabulary is the closed list in `tools/geoDC.UiDriver.Core/AutomationConventions.cs`.
+Check a surface against these conventions with `audit` rather than by reading a tree dump; see *Audit automation conventions* below. The role vocabulary is the closed list in `docs/code-vocabulary.md`, which `tools/geoDC.UiDriver.Core/AutomationConventions.cs` enforces.
 
-- Name IDs as PascalCase `{Noun}{Role}` using only `Button`, `Input`, `Combo`, `Picker`, `Choice`, `Toggle`, `Tab`, `List`, `Item`, `Text`, `Badge`, `Page`, `Panel`, or `Popup` as roles. Pick the role the element plays, not its WPF type (a check box is a `Toggle`, a metric is `Text`, an empty state is a `Panel`); `geodc/docs/code-vocabulary.md` > Automation ID roles says what each names.
+- Name IDs as PascalCase `{Noun}{Role}` using only `Button`, `Input`, `Combo`, `Picker`, `Choice`, `Toggle`, `Tab`, `List`, `Item`, `Text`, `Badge`, `Page`, `Panel`, or `Popup` as roles. Pick the role the element plays, not its WPF type (a check box is a `Toggle`, a metric is `Text`, an empty state is a `Panel`); `docs/code-vocabulary.md` > Automation ID roles says what each names.
 - Keep IDs unique within a page; do not prefix them with the page name.
 - Reserve `LandingTab`, `SetupTab`, `SurveyTab`, `CalibrationTab`, `VerificationTab`, `ShoreControlTab`, `GnssTab`, and `ReportsTab` application-wide. Name page-level tabs for their content.
 - Give scope anchors an automation peer. A named bare `Border` or `StackPanel` does not appear in the UIA tree.
