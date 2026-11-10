@@ -4,6 +4,16 @@
 # Screenshot corpora (dev/capture-views.ps1, dev/capture-ds-previews.ps1): regenerable, and large
 dev/captures/
 
+# Build output of the harness's tools and tests (geodc-harness.slnx)
+bin/
+obj/
+/TestResults/
+/artifacts/
+
+# UI driver state and its regenerable sample projects (docs/ui-driver.md)
+/.ui-driver/
+/dev/sample-projects/
+
 # Session-local Claude Code permission decisions and agent worktrees
 .claude/settings.local.json
 .claude/worktrees/

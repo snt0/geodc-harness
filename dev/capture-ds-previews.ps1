@@ -4,16 +4,17 @@
     Writes the Sample gallery's screenshot corpus and manifest, dark and light.
 
 .DESCRIPTION
-    Run on Windows from the repository root: pwsh -NoProfile -File dev/capture-ds-previews.ps1
+    Run on Windows from the harness root: pwsh -NoProfile -File dev/capture-ds-previews.ps1
 
-    1. tools/geoDC.GalleryCorpus renders every registered specimen offscreen and writes
+    1. The harness's tools/geoDC.GalleryCorpus renders every registered specimen of geoDC's Sample gallery
+       offscreen and writes
            <OutDir>/dark/<Id>.png, <OutDir>/light/<Id>.png and <OutDir>/manifest.json
     2. Specimens the manifest marks requiresLiveWindow are captured through dev/ui.ps1 from the running
        gallery and added to the manifest with source "ui-driver".
     3. Everything is zipped to <OutDir>.zip.
 
-    See "Screenshot corpus" in docs/ui/sample-gallery.md; dev/sync-design-system.ps1 turns the corpus into
-    design-system cards ("Design-system sync").
+    See "Screenshot corpus" in docs/design-system-sync.md; dev/sync-design-system.ps1 turns the corpus into
+    design-system cards.
 
 .PARAMETER OutDir
     Defaults to dev/captures/ds-previews (dev/captures is gitignored).
@@ -40,12 +41,13 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-# geoDC is the nested clone at geodc/ (bootstrap.ps1). The UI driver runs from inside it, where its instance file
-# resolves.
-$geodc = Join-Path (Split-Path $PSScriptRoot -Parent) 'geodc'
-$driver = Join-Path $geodc 'dev/ui.ps1'
-$tool = Join-Path $geodc 'tools/geoDC.GalleryCorpus/geoDC.GalleryCorpus.csproj'
-if (-not (Test-Path $driver) -or -not (Test-Path $tool)) { throw 'geodc/ has no dev/ui.ps1 or corpus tool; run bootstrap.ps1 first.' }
+# geoDC is the nested clone at geodc/ (bootstrap.ps1). The UI driver and the corpus tool are the harness's own; the
+# driver runs with geoDC as its working directory, and keeps its instance file in the harness.
+$harnessRoot = Split-Path $PSScriptRoot -Parent
+$geodc = Join-Path $harnessRoot 'geodc'
+$driver = Join-Path $PSScriptRoot 'ui.ps1'
+$tool = Join-Path $harnessRoot 'tools/geoDC.GalleryCorpus/geoDC.GalleryCorpus.csproj'
+if (-not (Test-Path (Join-Path $geodc 'geoDC.slnx'))) { throw 'geodc/ holds no geoDC clone; run bootstrap.ps1 first.' }
 
 New-Item -ItemType Directory -Force $OutDir | Out-Null
 $OutDir = (Resolve-Path -LiteralPath $OutDir).Path

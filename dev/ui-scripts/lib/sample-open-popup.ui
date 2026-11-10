@@ -1,0 +1,13 @@
+# State: the Sample gallery's blocking popup is open (its frame, PopupPanel, is showing).
+# Vars: none.
+# Passive-safe: no `key` steps. Close it with lib/sample-close-popup.
+#
+#   run lib/sample-open-popup
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --target sample --file dev/ui-scripts/lib/sample-open-popup.ui
+@target sample
+
+run lib/sample-goto-page nav=OverlaysNavItem
+wait --id PopupBlockingButton
+click --id PopupBlockingButton --await PopupPanel
+assert --id PopupPanel
+assert --id PopupFooterPanel

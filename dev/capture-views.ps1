@@ -4,7 +4,7 @@
     Captures a full-window screenshot of every enumerated geoDC view into a labelled corpus.
 
 .DESCRIPTION
-    Launches the app under the UI driver on its sample project (dev/sample-projects/sample.gdcproj)
+    Launches the app under the UI driver on its sample project (the harness's dev/sample-projects/sample.gdcproj)
     and writes one PNG per view to <OutDir>/<Label>/<view-id>.png, plus a capture.json
     recording the sample project's fingerprint, app commit and capture timestamp.
 
@@ -42,7 +42,7 @@
     identity and shows something a sibling doesn't.
 
 .PARAMETER OutDir
-    Corpus root. Defaults to dev/captures (gitignored along with the rest of dev/).
+    Corpus root. Defaults to the harness's dev/captures (gitignored).
 
 .PARAMETER Label
     Names the corpus directory — what build this is a picture of. Defaults to the short
@@ -121,13 +121,14 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# geoDC is the nested clone at geodc/ (bootstrap.ps1); the UI driver runs from inside it, where its instance file and
-# sample projects resolve, and the corpus is written to the harness's own dev/captures/.
+# geoDC is the nested clone at geodc/ (bootstrap.ps1). The UI driver is the harness's own and runs with geoDC as its
+# working directory. Its instance file and sample projects are in the harness, and the corpus is written to the
+# harness's dev/captures/.
 $harnessRoot = Split-Path $PSScriptRoot -Parent
 $repoRoot = Join-Path $harnessRoot 'geodc'
-$driver = Join-Path $repoRoot 'dev/ui.ps1'
-$sampleProject = Join-Path $repoRoot 'dev/sample-projects/sample.gdcproj'
-$sampleProjectFingerprint = Join-Path $repoRoot 'dev/sample-projects/sample.fingerprint.json'
+$driver = Join-Path $PSScriptRoot 'ui.ps1'
+$sampleProject = Join-Path $harnessRoot 'dev/sample-projects/sample.gdcproj'
+$sampleProjectFingerprint = Join-Path $harnessRoot 'dev/sample-projects/sample.fingerprint.json'
 
 # ---------------------------------------------------------------------------
 # The view list. This is the single place a view is declared: adding, removing

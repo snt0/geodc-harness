@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Renders the real Sample gallery pages offscreen, so it runs only on Windows. -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(GeoDCHarnessToolsRoot)geoDC.GalleryCorpus\geoDC.GalleryCorpus.csproj" />
+    <ProjectReference Include="$(GeoDCSourceRoot)geoDC.App.UI\geoDC.App.UI.csproj" />
+    <ProjectReference Include="$(GeoDCSourceRoot)geoDC.App.UI.Sample\geoDC.App.UI.Sample.csproj" />
+  </ItemGroup>
+
+</Project>

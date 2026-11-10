@@ -1,0 +1,12 @@
+# State: a GNSS check is selected on the GNSS check page and `tab` is showing.
+# Vars: attempt (default GNSS spot check (quayside)) = the check's exact list name;
+#       tab (default DataInputTab) = DataInputTab or ResultsTab.
+# Passive-safe: no `key` steps.
+#
+#   run lib/app-open-gnss-check attempt='GNSS spot check (quayside)'
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/lib/app-open-gnss-check.ui --var "attempt=GNSS spot check (quayside)"
+@target app
+@var attempt=GNSS spot check (quayside)
+@var tab=DataInputTab
+
+run lib/app-open-attempt page=GnssTab attempt='${attempt}' tab=${tab}

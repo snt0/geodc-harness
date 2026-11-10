@@ -1,0 +1,14 @@
+# State: the Sample gallery shows the group whose nav item is `nav`.
+# Vars: nav (default OverlaysNavItem) = a gallery nav item id: FoundationsNavItem, ActionsNavItem, InputsNavItem,
+#       QuantitiesNavItem, ConventionsNavItem, CollectionsNavItem, CardsNavItem, SectionsNavItem, ProgressNavItem,
+#       NavigationNavItem, FeedbackNavItem, OverlaysNavItem or ChromeNavItem.
+# Passive-safe: no `key` steps.
+#
+#   run lib/sample-goto-page nav=OverlaysNavItem
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --target sample --file dev/ui-scripts/lib/sample-goto-page.ui --var nav=OverlaysNavItem
+@target sample
+@var nav=OverlaysNavItem
+
+click --id ${nav}
+wait --id ${nav} --selected
+assert --id ${nav} --selected

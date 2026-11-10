@@ -1,0 +1,12 @@
+# State: a verification attempt is selected on the Verification page and `tab` is showing.
+# Vars: attempt (default Pitch verification (INITIAL)) = the verification's exact list name;
+#       tab (default DataInputTab) = DataInputTab or ResultsTab.
+# Passive-safe: no `key` steps.
+#
+#   run lib/app-open-verification attempt='Pitch verification (INITIAL)'
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/lib/app-open-verification.ui --var "attempt=Pitch verification (INITIAL)"
+@target app
+@var attempt=Pitch verification (INITIAL)
+@var tab=DataInputTab
+
+run lib/app-open-attempt page=VerificationTab attempt='${attempt}' tab=${tab}

@@ -40,7 +40,7 @@ Also state whether any of these changed, and how that was checked:
 - immutability of approved results;
 - persisted formats or package compatibility.
 
-For UI work, state whether the surface can be driven by `geoDC.UiDriver`, and add demand-driven AutomationIds or peers where needed. Treat the eight shell tab IDs as reserved.
+For UI work, state whether the surface can be driven by the harness's UI driver (`tools/geoDC.UiDriver`), and add demand-driven AutomationIds or peers where needed. Treat the eight shell tab IDs as reserved. When the change renames a shell tab, a toolkit template part or a strings entry, run the harness's `tests/geoDC.UiDriver.Tests` against the branch: the driver's convention lists mirror them.
 
 ## 5. Visual capture (optional)
 

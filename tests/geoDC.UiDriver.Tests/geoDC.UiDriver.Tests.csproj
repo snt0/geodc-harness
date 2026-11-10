@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Tests the UI driver's UIA-free logic in geoDC.UiDriver.Core, which targets net10.0, so they run on any host. -->
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(GeoDCHarnessToolsRoot)geoDC.UiDriver.Core\geoDC.UiDriver.Core.csproj" />
+  </ItemGroup>
+
+</Project>

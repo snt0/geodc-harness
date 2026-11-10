@@ -40,6 +40,13 @@ if [[ ! -e geodc ]]; then
     report
   fi
 fi
+
+# The harness's projects reference geoDC's. Building them through the geodc/ link mixes the link's path with its
+# target's and breaks incremental builds, so point the harness's Directory.Build.props at the real clone.
+if [[ -L geodc && -n "$CLAUDE_ENV_FILE" ]]; then
+  echo "export GeoDCCloneRoot=$(cd -P geodc && pwd)/" >>"$CLAUDE_ENV_FILE"
+fi
+
 cd geodc || report
 
 if ! command -v dotnet >/dev/null 2>&1; then
@@ -105,9 +112,9 @@ else
 fi
 
 if command -v pwsh >/dev/null 2>&1; then
-  notes+=("pwsh is available for dev/*.ps1 scripts (dev/ui.ps1 still needs Windows).")
+  notes+=("pwsh is available for dev/*.ps1 scripts (the harness's UI driver shim, dev/ui.ps1, still needs Windows).")
 else
   notes+=("pwsh is not installed; dev/*.ps1 scripts cannot run.")
 fi
-notes+=("Linux host: the solution builds; Domain, Application, Infrastructure, App.Core and TestDataGenerator tests run; geoDC.App.Tests, geoDC.App.UI.Tests and the UI driver are Windows-only. Work on geoDC happens in geodc/, a repository of its own. See AGENTS.md > Cloud sessions.")
+notes+=("Linux host: the solution builds; Domain, Application, Infrastructure, App.Core and TestDataGenerator tests run; geoDC.App.Tests, geoDC.App.UI.Tests, the harness's geoDC.GalleryCorpus.Tests and the UI driver are Windows-only; the harness's geoDC.UiDriver.Tests runs here. Work on geoDC happens in geodc/, a repository of its own. See AGENTS.md > Cloud sessions.")
 report

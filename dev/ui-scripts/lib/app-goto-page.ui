@@ -1,0 +1,13 @@
+# State: the app shows the top-level page named by `page`, whatever page it was on before.
+# Vars: page (default LandingTab) = the shell destination's AutomationId: LandingTab, SetupTab, SurveyTab,
+#       CalibrationTab, VerificationTab, ShoreControlTab, GnssTab or ReportsTab.
+# Passive-safe: no `key` steps. Navigation needs no active job; a page with no job shows its gate instead of content.
+#
+#   run lib/app-goto-page page=CalibrationTab
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/lib/app-goto-page.ui --var page=CalibrationTab
+@target app
+@var page=LandingTab
+
+click --id ${page}
+wait --id ${page} --selected
+assert --id ${page} --selected

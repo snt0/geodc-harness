@@ -1,0 +1,17 @@
+# Opens a calibration attempt's Data Input tab in the app and checks its observed dataset slot is filled.
+#
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 attach --launch --project dev/sample-projects/sample.gdcproj
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/app-open-calibration.ui
+#
+# The default attempt is in the sample project (`dev/ui.ps1 sample create`). Pick another with
+# --var "attempt=<attempt list name>". Works in passive mode. Navigation and selection come from
+# lib/app-open-attempt, which also asserts the selected attempt's name. The sample project's attempts already hold
+# observed data, so the slot shows Inspect rather than Import (DatasetSlot names both from its SlotId).
+@target app
+@var attempt=Pitch calibration (INITIAL)
+
+run lib/app-open-attempt page=CalibrationTab attempt='${attempt}' tab=DataInputTab
+assert --id DataInputPanel
+assert --id AttemptNameInput --exists
+assert --id TargetSensorCombo --exists
+assert --id InspectObservedButton --exists

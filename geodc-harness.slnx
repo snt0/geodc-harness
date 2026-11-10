@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/misc/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/geoDC.GalleryCorpus/geoDC.GalleryCorpus.csproj" />
+    <Project Path="tools/geoDC.UiDriver/geoDC.UiDriver.csproj" />
+    <Project Path="tools/geoDC.UiDriver.Core/geoDC.UiDriver.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/geoDC.GalleryCorpus.Tests/geoDC.GalleryCorpus.Tests.csproj" />
+    <Project Path="tests/geoDC.UiDriver.Tests/geoDC.UiDriver.Tests.csproj" />
+  </Folder>
+</Solution>

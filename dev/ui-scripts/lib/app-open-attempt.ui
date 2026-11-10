@@ -1,0 +1,22 @@
+# State: an attempt is selected on a Calibration, Verification or GNSS check page and `tab` is showing.
+# Vars: page (default CalibrationTab) = CalibrationTab, VerificationTab or GnssTab;
+#       attempt (default Pitch calibration (INITIAL)) = the attempt's exact list name, which must belong to
+#       the page and to the active job (see lib/app-select-job);
+#       tab (default DataInputTab) = DataInputTab or ResultsTab.
+# Passive-safe: no `key` steps.
+#
+#   run lib/app-open-attempt attempt='Pitch calibration (INITIAL)'
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/lib/app-open-attempt.ui --var "attempt=Pitch calibration (INITIAL)"
+@target app
+@var page=CalibrationTab
+@var attempt=Pitch calibration (INITIAL)
+@var tab=DataInputTab
+
+run lib/app-goto-page page=${page}
+wait --id AttemptList
+select --id AttemptList --item '${attempt}'
+click --id DataInputTab --await AttemptNameInput
+assert --id AttemptNameInput --value '${attempt}' --timeout 3
+click --id ${tab}
+wait --id ${tab} --selected
+assert --id ${tab} --selected

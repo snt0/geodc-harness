@@ -1,0 +1,14 @@
+# State: the job named `job` is the active job every page works on (picked in Setup's job list).
+# Vars: job (default Initial survey) = the job's exact name; the list item is matched by name, so the
+#       job's name alone resolves "Initial survey (MOB-001)".
+# Passive-safe: no `key` steps. Leaves the app on the Setup page.
+#
+#   run lib/app-select-job job='Initial survey'
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/lib/app-select-job.ui --var "job=Initial survey"
+@target app
+@var job=Initial survey
+
+run lib/app-goto-page page=SetupTab
+wait --id JobList
+select --id JobList --item '${job}'
+assert --id JobNameInput --value '${job}' --timeout 3

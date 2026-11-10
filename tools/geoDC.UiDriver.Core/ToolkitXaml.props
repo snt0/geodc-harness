@@ -1,0 +1,12 @@
+<Project>
+
+  <!-- The toolkit's XAML, embedded so the audit can exempt the x:Names of geoDC.App.UI templates; see
+       AutomationConventions.ToolkitElementNames. Imported by the UI driver and by the tests that link its audit. -->
+  <ItemGroup>
+    <EmbeddedResource Include="$(GeoDCSourceRoot)geoDC.App.UI\**\*.xaml"
+                      Exclude="$(GeoDCSourceRoot)geoDC.App.UI\obj\**;$(GeoDCSourceRoot)geoDC.App.UI\bin\**"
+                      LogicalName="ToolkitXaml/%(RecursiveDir)%(Filename)%(Extension)"
+                      Visible="false" />
+  </ItemGroup>
+
+</Project>

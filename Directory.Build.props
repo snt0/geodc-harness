@@ -1,0 +1,28 @@
+<Project>
+  <!-- The harness's projects build with geoDC's settings: its SDK defaults, analyzers, strict code style option and
+       shared test setup. GeoDCRepositoryRoot, GeoDCSourceRoot, GeoDCToolsRoot and GeoDCTestsRoot therefore point into
+       geodc/, so references to geoDC projects and linked test files resolve there. The harness's own folders get
+       properties of their own. -->
+  <PropertyGroup>
+    <!-- The geoDC clone: geodc/, unless GeoDCCloneRoot names it (as an environment variable or a property). Where
+         geodc/ is a symbolic link, as in a cloud session, MSBuild reaches some of a project's files through the link
+         and others through its target, and a build that mixes the two drops or deletes outputs. The cloud
+         session-start hook therefore sets GeoDCCloneRoot to the clone's real path. -->
+    <GeoDCCloneRoot Condition="'$(GeoDCCloneRoot)' == ''">$(MSBuildThisFileDirectory)geodc\</GeoDCCloneRoot>
+    <GeoDCCloneRoot>$([MSBuild]::EnsureTrailingSlash('$(GeoDCCloneRoot)'))</GeoDCCloneRoot>
+  </PropertyGroup>
+
+  <Import Project="$(GeoDCCloneRoot)Directory.Build.props" />
+
+  <PropertyGroup>
+    <GeoDCHarnessRoot>$(MSBuildThisFileDirectory)</GeoDCHarnessRoot>
+    <GeoDCHarnessToolsRoot>$(GeoDCHarnessRoot)tools\</GeoDCHarnessToolsRoot>
+    <GeoDCHarnessTestsRoot>$(GeoDCHarnessRoot)tests\</GeoDCHarnessTestsRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- geoDC versions every assembly with Nerdbank.GitVersioning from its own version.json and history. The harness
+         ships nothing, so its tools and tests stay unversioned, and a shallow harness clone still builds. -->
+    <PackageReference Remove="Nerdbank.GitVersioning" />
+  </ItemGroup>
+</Project>

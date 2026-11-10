@@ -1,0 +1,8 @@
+# The geoDC projects the harness references are not in geodc-harness.slnx, so a solution build would build them in
+# their default configuration (Debug) whatever -c asks for, and a project reached through two paths could build twice
+# at once. As a global property, this keeps every referenced project in the solution's configuration.
+-p:ShouldUnsetParentConfigurationAndPlatform=false
+# Keep command-line builds focused on warnings, errors, and the final summary, as geoDC's Directory.Build.rsp does.
+# Override with -consoleLoggerParameters:Verbosity=minimal when fuller output is needed.
+-verbosity:quiet
+-consoleLoggerParameters:Verbosity=quiet

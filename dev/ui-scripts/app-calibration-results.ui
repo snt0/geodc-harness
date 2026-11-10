@@ -1,0 +1,16 @@
+# Opens a calibration attempt's Results tab, computes its result and takes a screenshot of the main window.
+#
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 attach --launch --project dev/sample-projects/sample.gdcproj
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/app-calibration-results.ui
+#
+# The default attempt is in the sample project (`dev/ui.ps1 sample create`). Pick another with
+# --var "attempt=<attempt list name>". The sample project leaves its calibrations open and uncomputed, so the script
+# presses Compute to draw the chart. That edits the open project but does not save it. Run it on a freshly
+# launched sample project, where the attempt has no result yet. Passive-safe: no `key` steps.
+@target app
+@var attempt=Pitch calibration (INITIAL)
+
+run lib/app-open-attempt page=CalibrationTab attempt='${attempt}' tab=ResultsTab
+click --id InspectorComputeButton --await ChartExportButton
+screenshot --main-window --out .ui-driver/screenshots/calibration-results.png
+assert --id ChartSetupToggle --exists

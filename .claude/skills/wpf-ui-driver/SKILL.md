@@ -7,33 +7,36 @@ description: Inspect and drive running geoDC WPF surfaces through the repository
 
 Ask the user before invoking the UI driver. To give the developer a script that opens the change for them to check themselves, use `geodc-ui-driver-handoff`. If the shim/build hits a restore failure, stop and ask the user to run restore; do not remediate feeds, credentials, or network access autonomously.
 
-The developer guide is [`geodc/docs/ui-driver.md`](../../../geodc/docs/ui-driver.md). Run commands from the harness root through geoDC's shim, with geoDC (`geodc/`) as the working directory; the shim builds the UI driver when needed. Every path the driver takes or reports (`dev/ui-scripts/...`, `dev/sample-projects/...`, `.ui-driver/`, `--project` paths) is relative to `geodc/`, as the driver sees it. Stdout is one JSON line per result whenever it is piped or captured, as agent tools do; a terminal gets `--format text` unless `--format json` is given:
+The developer guide is [`docs/ui-driver.md`](../../../docs/ui-driver.md). The UI driver is the harness's own (`tools/geoDC.UiDriver`). Run commands from the harness root through the harness's shim, with geoDC (`geodc/`) as the working directory; the shim builds the UI driver when needed. The driver builds and launches geoDC from its working directory, but its own files live in the harness root (the driver home, which the shim passes in `GEODC_UI_HOME`): every path it takes or reports (`dev/ui-scripts/...`, `dev/sample-projects/...`, `.ui-driver/`, relative `--project`, `--out`, `--report` and `--append` paths) is relative to the harness root. Stdout is one JSON line per result whenever it is piped or captured, as agent tools do; a terminal gets `--format text` unless `--format json` is given:
 
 ```pwsh
-pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 <verb> [options]
+pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 <verb> [options]
 ```
 
-Use the raw `geodc/tools/geoDC.UiDriver/bin/Debug/net10.0-windows/geodc-ui.exe` only when the shim cannot run.
+Use the raw `tools/geoDC.UiDriver/bin/Debug/net10.0-windows/geodc-ui.exe` only when the shim cannot run; run it with `geodc/` as the working directory and `GEODC_UI_HOME` set to the harness root, as the shim does.
 
 ### Driving a different worktree
 
-The UI driver resolves everything from its working directory, not from the shim's location: the target's build output
-(`src/.../bin/...`), relative `--project` paths, and the `.ui-driver/` instance file and tree snapshots. When the shell sits in another checkout (for
-example an agent session whose working directory is a different worktree), set the working directory explicitly:
+The UI driver builds and launches the geoDC checkout that is its working directory: the target's build output
+(`src/.../bin/...`) and the strings files come from there. To drive another geoDC worktree, pass it as the working
+directory; the shim and the driver home stay the harness's:
 
 ```pwsh
-pwsh -NoProfile -WorkingDirectory <worktree> -File <worktree>/dev/ui.ps1 <verb> [options]
+pwsh -NoProfile -WorkingDirectory <geodc-worktree> -File dev/ui.ps1 <verb> [options]
 ```
 
-- Run `kill`, `status`, and `rebuild` from the same working directory as the `attach --launch` that started the driver's instance.
-  From anywhere else they find no instance: `kill` leaves the app running, which keeps the build outputs locked.
+The `.ui-driver/` instance file and tree snapshots are in the driver home, so one harness checkout keeps one instance
+per target. A harness worktree (for example an agent session in another harness checkout) has its own.
+
+- Run `kill`, `status`, and `rebuild` through the same harness checkout as the `attach --launch` that started the driver's instance.
+  From another they find no instance: `kill` leaves the app running, which keeps the build outputs locked.
 - `GEODC_APP_EXE` overrides the executable for the `app` target only; it has no effect on `--target sample`.
 
 ## Choose the target
 
 - Prefer `--target sample` for App.UI controls, templates, styles, themes, and automation peers. It is fast, state-free, and has a shallow UIA tree.
 - Use the default `app` target for application pages and workflows.
-- Allow `attach --launch` to open only the sample project `dev/sample-projects/sample.gdcproj`, or `dev/sample-projects/sample-lifecycle.gdcproj` when a check needs calibrations, verifications and GNSS checks in every workflow state. If one is missing, create it with `pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 sample create` (add `--lifecycle` for the second); `sample status` says which exist.
+- Allow `attach --launch` to open only the sample project `dev/sample-projects/sample.gdcproj`, or `dev/sample-projects/sample-lifecycle.gdcproj` when a check needs calibrations, verifications and GNSS checks in every workflow state. If one is missing, create it with `pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 sample create` (add `--lifecycle` for the second); `sample status` says which exist.
 - `attach --launch` never gives geoDC the developer's own Shore Control Register. It copies the package's `<name>-register.sqlite` (which `sample create` writes beside each sample project) to `.ui-driver/registers/<target>.sqlite` and points geoDC at the copy, so register edits last only until the next launch; a package without one gets an empty register. A copy still open by an instance the UI driver did not launch fails the launch with `register-busy`.
 - `attach --launch` clears a project lock left by a geoDC process that is no longer running (a killed or crashed instance), so geoDC does not open behind its lock prompt. Any other lock (a live session, another computer, a lock that does not name its holder, or one another session changed while it was being cleared) fails the launch with `project-locked`: close the geoDC session holding the sample project, or `kill` the UI driver instance, then launch again.
 - Never pass another `.gdcproj` to `--project` unless the user explicitly names it.
@@ -43,7 +46,7 @@ pwsh -NoProfile -WorkingDirectory <worktree> -File <worktree>/dev/ui.ps1 <verb> 
 
 1. Invoke one UI driver command per tool call. Do not chain commands with `&&`, `;`, pipelines, or exit-code echoes.
 2. Run `attach`; if no instance is running, run `attach --launch` (add `--passive` to keep the app from ever taking the foreground; see below).
-   `attach --launch` records the driver's instance in `.ui-driver/<target>-instance.json`, local to the worktree. Later commands and `kill`
+   `attach --launch` records the driver's instance in the harness's `.ui-driver/<target>-instance.json`, local to that checkout. Later commands and `kill`
    act only on that process and ignore same-named processes launched by tests or other tools.
    After changing code the app runs, use `rebuild` (one call) to stop it, build, and relaunch it the same way; see *Rebuild and stale builds*. A line carrying `"warning":"stale-build"` came from an app older than its build output.
 3. Discover with `tree --interactable` before acting, scoped with `--scope <AutomationId>` or `--window` once you know where to look; use `find` to locate a specific element anywhere. Fall back to `tree --depth <n>` for layout or for non-interactive nodes such as badges and text. Never guess AutomationIds or click coordinates. See *Discover compactly*.
@@ -152,7 +155,7 @@ Use `source` to answer "where does this text come from?" instead of grepping the
 - It reads every distinct text in the subtree of `--id`, of `--scope` when there is no `--id`, or of the selected windows: each element's Name, and its ValuePattern value when that differs. `--name <substring>` keeps only the texts containing it, ignoring case. Texts with no letter (numbers, glyphs) are skipped.
 - Each text prints a line naming it and the first element that shows it (`[Role] id: …`, `×n` when several do, and `path:`), then each strings-file entry that reads as it, as `file:line › key.path (case c)  Class.Member` (`filled in` when its placeholders were filled), with the `read at file:line` lines under `src` that read the entry. A text no entry reads as says it is data, or text built in code.
 - The entry must account for the whole text, so `Save` is not traced to every sentence containing it. Several entries mean the same words live in several strings files: the same-case match comes first, and the `read at` lines tell them apart.
-- It reads the strings files of the worktree it runs in. Outside one it fails `no-repository`, and a strings file the catalog cannot read fails `strings-unreadable`; both exit 1. Finding no text is a success with `data.texts: 0`.
+- It reads the strings files of the geoDC checkout that is its working directory. Outside one it fails `no-repository`, and a strings file the catalog cannot read fails `strings-unreadable`; both exit 1. Finding no text is a success with `data.texts: 0`.
 
 ```text
 source --name "Choose a job"
@@ -219,7 +222,7 @@ The JSON reports the written size, the captured size before downscaling, and whe
 - One step per line in the inline step grammar; blank lines and `#` lines are skipped. Single or double quotes group a token with spaces, with no escapes inside (so regex backslashes survive); `''` inside single quotes is a literal quote. Steps cannot contain `++`.
 - `${name}` is replaced by `--var name=value`, or by a script default `@var name=value` (the rest of the line). An undefined variable, or a `--var` the script never uses, fails `bad-script` before any step runs.
 - `@target app|sample` names the script's target; a conflicting `--target` is rejected. Every checked-in script declares one.
-- Current checks: the developer samples in `geodc/docs/ui-driver.md` (`app-smoke.ui`, `app-page-tour.ui`, `app-job-grid.ui`, `app-calibration-results.ui`, `app-about-roundtrip.ui`), `sample-popup-roundtrip.ui` (Sample gallery, active launch: it presses Escape), `app-open-calibration.ui` (app, on the sample project; `--var "attempt=<attempt list name>"` picks another attempt) and `sample-popup-manual-check.ui` (Sample gallery, a `pause` between opening and closing the popup). All are built on the `lib/` state scripts below.
+- Current checks: the developer samples in `docs/ui-driver.md` (`app-smoke.ui`, `app-page-tour.ui`, `app-job-grid.ui`, `app-calibration-results.ui`, `app-about-roundtrip.ui`), `sample-popup-roundtrip.ui` (Sample gallery, active launch: it presses Escape), `app-open-calibration.ui` (app, on the sample project; `--var "attempt=<attempt list name>"` picks another attempt) and `sample-popup-manual-check.ui` (Sample gallery, a `pause` between opening and closing the popup). All are built on the `lib/` state scripts below.
 
 ### Compose scripts with `run`
 
@@ -331,7 +334,7 @@ Every `attach --launch` starts the app behind the user's windows (`ShowActivated
 
 ## Apply automation conventions
 
-Check a surface against these conventions with `audit` rather than by reading a tree dump; see *Audit automation conventions* below. The role vocabulary is the closed list in `geodc/docs/code-vocabulary.md`.
+Check a surface against these conventions with `audit` rather than by reading a tree dump; see *Audit automation conventions* below. The role vocabulary is the closed list in `tools/geoDC.UiDriver.Core/AutomationConventions.cs`.
 
 - Name IDs as PascalCase `{Noun}{Role}` using only `Button`, `Input`, `Combo`, `Picker`, `Choice`, `Toggle`, `Tab`, `List`, `Item`, `Text`, `Badge`, `Page`, `Panel`, or `Popup` as roles. Pick the role the element plays, not its WPF type (a check box is a `Toggle`, a metric is `Text`, an empty state is a `Panel`); `geodc/docs/code-vocabulary.md` > Automation ID roles says what each names.
 - Keep IDs unique within a page; do not prefix them with the page name.
@@ -355,7 +358,7 @@ Check a surface against these conventions with `audit` rather than by reading a 
 | `raw-name` | A UIA Name that is raw `ToString` output: record-style (`JobRow { Name = A }`) or a namespace-qualified type name. One finding per type. |
 
 - A **page scope** is the nearest ancestor whose id ends in `Page`, a popup frame (`PopupPanel`, `DialogPanel`, `LoadingPanel`), a `Window` (an owned popup window sits under its owner), or a data-bound item; else the audit root. A node's own id belongs to the scope it sits in. A popup with its own `PopupPresentation.AutomationId` that is not a window shares the scope of the page beneath it.
-- The allowlists live in one place, `geodc/tools/geoDC.UiDriver.Core/AutomationConventions.cs`: the roles, the reserved shell ids, the template-part ids that may repeat within a page (help badge, coordinate, date and CRS pickers, calendar, list view, overlay drawer, wizard frame and stepper, popup footer; `*` is a glob), and the popup frame ids. WPF's own `PART_*` ids are exempt from naming and duplicates, and so is every `x:Name` declared in `geodc/src/geoDC.App.UI` XAML: WPF reports an element's `x:Name` as its AutomationId when none is set, so template internals (`Chrome`, `HeaderToggle`, `HelperText`) surface from every toolkit control. The UI driver embeds the toolkit XAML at build time, so rebuild it after changing a template. Because the match is by id alone, an app element that reuses one of those names is exempt too. Scroll bars and the window title bar are not walked. Add a toolkit template part there when you document it; a UI driver test fails when an entry matches nothing declared in `geodc/src/geoDC.App.UI`.
+- The allowlists live in one place, the harness's `tools/geoDC.UiDriver.Core/AutomationConventions.cs`: the roles, the reserved shell ids, the template-part ids that may repeat within a page (help badge, coordinate, date and CRS pickers, calendar, list view, overlay drawer, wizard frame and stepper, popup footer; `*` is a glob), and the popup frame ids. WPF's own `PART_*` ids are exempt from naming and duplicates, and so is every `x:Name` declared in `geodc/src/geoDC.App.UI` XAML: WPF reports an element's `x:Name` as its AutomationId when none is set, so template internals (`Chrome`, `HeaderToggle`, `HelperText`) surface from every toolkit control. The UI driver embeds the toolkit XAML at build time, so rebuild it after changing a template. Because the match is by id alone, an app element that reuses one of those names is exempt too. Scroll bars and the window title bar are not walked. Add a toolkit template part there when you document it; a UI driver test fails when an entry matches nothing declared in `geodc/src/geoDC.App.UI`.
 - Each finding is `{rule, role, id, name, path, scope, occurrences, message}`: `path` is the ancestor AutomationIds from the audit root down (as `find` prints them), `scope` the page scope's id (null for an id-less window or item), and `occurrences` how many nodes a grouped finding stands for. A grouped finding points at the first occurrence. Findings are ordered by rule, in the table's order, then by document order, so the same surface gives the same list.
 - No findings is a success: `{"ok":true,"verb":"audit","data":{"scope":null,"walked":812,"count":0,"byRule":{…},"findings":[]}}`. Findings fail `audit-findings` with exit code 4 (distinct from the UI driver's error codes) and the same fields on `error`; in `do` this stops the run like a failed `assert`:
 

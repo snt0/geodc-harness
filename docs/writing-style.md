@@ -66,8 +66,8 @@ Watch for these in your drafts, and fix them when you meet them in existing text
   spaces).
 - `geoDC.Measurements`, `geoDC.Domain` and `geoDC.Application` require a `<summary>` on every public member (CS1591 is
   a build error there). Rewrite a summary; don't delete it.
-- `CommentConventionTests` fails on issue references (`#123`), `TODO`/`FIXME`/`HACK`, and history wording ("stopgap",
-  "used to be", "per review") in comments.
+- Comments carry no issue references (`#123`), `TODO`/`FIXME`/`HACK` markers or history wording ("stopgap",
+  "used to be", "per review"). Nothing checks this automatically, so check your diff.
 - Wrap Markdown and comments at 120 characters.
 
 ## Docs: keep, trim, merge or delete
@@ -101,7 +101,7 @@ Doc bullet:
 > set explicitly — so an icon-only action is never unnamed. ``
 >
 > After: `` - `UiIconButton` is a `UiButton` that shows only its `Symbol`. The face is square, and `Label` becomes the
-> tooltip and the automation name, so screen readers and the UI driver can still find an icon-only button. ``
+> tooltip and the automation name, so screen readers and UI tests can still find an icon-only button. ``
 
 Paragraph:
 

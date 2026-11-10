@@ -4,7 +4,7 @@ Shared guidance for coding agents working on geoDC from this harness. Keep this 
 
 ## Layout
 
-- This repository is the agent harness: these instructions, the skills (`.agents/`, `.claude/skills`), the Claude Code and Codex settings and hooks, the cloud-session docs and setup, and the capture and design-system scripts under `dev/`.
+- This repository is the agent harness: these instructions, the skills (`.agents/`, `.claude/skills`), the Claude Code and Codex settings and hooks, the cloud-session docs and setup, the capture and design-system scripts under `dev/`, and the UI driver and gallery screenshot corpus (`tools/`, `tests/`, `geodc-harness.slnx`), which build against geoDC with its settings.
 - geoDC itself is `geodc/`: a separate clone of `snt0/geodc` on `dev`, gitignored here. `bootstrap.ps1` or `bootstrap.sh` creates or updates it; in a cloud session the session-start hook links the attached geoDC repository there.
 - Paths in this file and in the skills are relative to the harness root, so geoDC's are written `geodc/...` (`geodc/docs/codebase.md`, `dotnet build geodc/geoDC.slnx`). A path without the prefix is the harness's own.
 - Commit and push geoDC changes inside `geodc/` (`git -C geodc ...`), and harness changes at the root. They are separate repositories with separate branches and pull requests.
@@ -28,6 +28,7 @@ Shared guidance for coding agents working on geoDC from this harness. Keep this 
 - Read `docs/cloud-sessions.md` before changing the cloud environment setup script; read `docs/cloud-sessions-claude.md` before changing the `.claude/hooks` scripts. Both are in this harness.
 - Read the relevant page of `geodc/docs/ui/` before changing shared controls (`controls.md`), themes, typed resources or foreground behavior (`theming.md`), data grids (`data-grids.md`), containers and panels (`layout.md`), notifications, feedback or application-state behaviour (`feedback.md`), popup infrastructure (`popups.md`), or the Sample gallery (`sample-gallery.md`).
 - Review `geodc/docs/code-vocabulary.md` before introducing or broadly renaming role suffixes.
+- Read `docs/ui-driver.md` before changing the UI driver, its scripts or its sample projects, and `docs/design-system-sync.md` before changing the gallery corpus tool or the capture scripts. Both are in this harness.
 - Read `docs/github-practices.md` before filing issues, applying labels, or opening pull requests.
 
 ## Agent skills
@@ -51,17 +52,18 @@ The rules that apply to people and agents alike live in the human docs. Follow t
 - geoDC has no CI of its own. Before asking for a merge, run the checks in `geodc/docs/codebase.md` > Checks before merging and releases that your platform allows, and run the harness's `geoDC CI` workflow on the branch (`docs/github-practices.md` > CI); report both under Testing.
 - The commands are in `geodc/docs/codebase.md` > Build, Test and Run. Run them inside `geodc/`, or from the harness root with the paths prefixed (`dotnet build geodc/geoDC.slnx`, `dotnet test geodc/tests/geoDC.Domain.Tests`).
 - On Linux, `dotnet test geodc/geoDC.slnx` aborts on the Windows-only projects (no `Microsoft.WindowsDesktop.App` runtime). Test the affected projects one by one; `docs/cloud-sessions.md` lists which run.
+- A harness change to the UI driver or the corpus tool builds with `dotnet build geodc-harness.slnx -c Release -p:GeoDCStrictCodeStyle=true` and tests with `dotnet test tests/geoDC.UiDriver.Tests` (any OS) and `tests/geoDC.GalleryCorpus.Tests` (Windows). The harness's Checks workflow runs both. A geoDC change that renames an AutomationId, a template part or a strings entry the driver mirrors can break these tests, so run them too.
 - `geodc/tools/geoDC.ReportCli` runs on Linux, so use it to check report, template or reporting-data changes end to end (`geodc/docs/reporting.md` > Headless reports).
 - If restore fails because of feeds, credentials, SSL, or network access, report it and ask the developer to run restore rather than changing package sources or credentials.
 - The pre-commit hook formats staged C# files. Do not run a repository-wide formatting pass.
 
 ## UI driver
 
-- The developer guide is `geodc/docs/ui-driver.md`.
+- The UI driver is the harness's own (`tools/geoDC.UiDriver`, scripts in `dev/ui-scripts/`); geoDC carries none of it. The developer guide is `docs/ui-driver.md`.
 - Ask before invoking the UI driver, then follow the `wpf-ui-driver` skill.
-- When a change has UI or behaviour the developer should see, especially from a cloud session, hand them a script to run in their worktree with the `geodc-ui-driver-handoff` skill.
-- The UI driver resolves its instance file, sample projects and builds from its working directory, so always run it from inside geoDC: `pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 <verb> ...`.
-- Full-app launch may open only the sample project `dev/sample-projects/sample.gdcproj`, or `dev/sample-projects/sample-lifecycle.gdcproj` when a check needs work items in every workflow state, unless the user names another package (both relative to `geodc/`, as the driver sees them). Both are gitignored; create them with `pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 sample create` (add `--lifecycle` for the second).
+- When a change has UI or behaviour the developer should see, especially from a cloud session, hand them a script to run in their harness checkout with the `geodc-ui-driver-handoff` skill.
+- Run it from the harness root through the harness's shim, with geoDC as the working directory: `pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 <verb> ...`. It builds and launches geoDC from its working directory, and keeps its `.ui-driver/` state, sample projects and scripts in the harness (the driver home), so geoDC's tree stays clean.
+- Full-app launch may open only the sample project `dev/sample-projects/sample.gdcproj`, or `dev/sample-projects/sample-lifecycle.gdcproj` when a check needs work items in every workflow state, unless the user names another package (both relative to the harness root). Both are gitignored; create them with `pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 sample create` (add `--lifecycle` for the second).
 - Passing tests or compilation do not prove live layout, focus, keyboard, popup, or rendering behavior. State the verification boundary.
 
 ## Cloud sessions
@@ -71,7 +73,7 @@ Cloud agent sessions (Claude Code, Codex) run in a disposable Ubuntu VM holding 
 - Creating, moving, and deleting files inside the clones is routine there; nothing outside them matters once the session ends.
 - Never push `dev` or `main` (geoDC's or the harness's) from the cloud, and never force push or delete remote branches. Claude Code enforces this with a push guard hook; other agents must follow it by convention.
 - Commit and push before stopping. The VM and any uncommitted work are discarded when the session expires.
-- The whole solution builds on Linux, but `geoDC.App.Tests`, `geoDC.App.UI.Tests`, the app, the Sample gallery and the UI driver run only on Windows (`docs/cloud-sessions.md` > Verification boundary, `geodc/docs/codebase.md` > Linux and Windows). Changes covered only by those are compile-verified; say so.
+- The whole solution builds on Linux, but `geoDC.App.Tests`, `geoDC.App.UI.Tests`, the harness's `geoDC.GalleryCorpus.Tests`, the app, the Sample gallery and the UI driver run only on Windows (`docs/cloud-sessions.md` > Verification boundary, `geodc/docs/codebase.md` > Linux and Windows). Changes covered only by those are compile-verified; say so.
 - A shallow clone fails every build (Nerdbank.GitVersioning), and a blocked Typst download fails the build unless `GeoDCSkipTypstFetch=true`. Claude Code's session-start hook handles both; otherwise follow `docs/cloud-sessions.md`.
 - If the session-start report (Claude Code) or the environment says the .NET SDK is missing, tell the user the environment setup needs fixing rather than installing a toolchain mid-session.
 

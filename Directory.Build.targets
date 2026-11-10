@@ -1,0 +1,5 @@
+<Project>
+  <!-- geoDC's targets: the shared test helpers for test projects over the app shell, Typst bundling and PROJ runtime
+       trimming. -->
+  <Import Project="$(GeoDCCloneRoot)Directory.Build.targets" />
+</Project>

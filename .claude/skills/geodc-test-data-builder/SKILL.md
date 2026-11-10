@@ -12,7 +12,8 @@ Use the existing generator for connected domain data; do not hand-edit SQLite/pa
 - Read `geodc/docs/test-data-generator.md` before changing generator behavior or choosing nontrivial flags.
 - Use `geodc/tools/geoDC.TestDataGenerator.Cli` for scripted output and `geodc/tools/geoDC.TestDataGenerator.Wpf` for an interactive generator UI.
 - Use `geodc/tools/geoDC.TestDataGenerator.Core` when adding scenario options, domain graph content, signal behavior, raw files, or persistence mapping.
-- Use the UI driver's `sample create` only for the UI driver's sample projects (the `sample` and `lifecycle-coverage` presets). Do not substitute an arbitrary `.gdcproj` into UI driver workflows.
+- Use the UI driver's `sample create` (`pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 sample create`, from the harness root) only for the UI driver's sample projects (the `sample` and `lifecycle-coverage` presets). It runs geoDC's generator CLI and installs the result in the harness's `dev/sample-projects/`. Do not substitute an arbitrary `.gdcproj` into UI driver workflows.
+- Keep the CLI's `Preset:`, `Seed:`, `Domain fingerprint:`, `Project fingerprint:`, `Register:` and `Register fingerprint:` output lines as they are: the harness's UI driver reads them to record each sample project's provenance (`tools/geoDC.UiDriver.Core/DriverSampleProject.cs`).
 
 ## Invariants
 

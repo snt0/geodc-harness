@@ -1,0 +1,15 @@
+# Selects a job, opens its Shore Control set and lists the rows of the point table.
+#
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 attach --launch --project dev/sample-projects/sample.gdcproj
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/app-job-grid.ui --format text
+#
+# The defaults are in the sample project (`dev/ui.ps1 sample create`). Pick another job with --var "job=<job name>".
+# Passive-safe: no `key` steps. The `find` step prints one line per grid row.
+@target app
+@var job=Initial survey
+
+run lib/app-select-job job='${job}'
+run lib/app-open-shore-control
+wait --id PointTableList
+find --role DataItem --scope PointTableList
+assert --id PointTableList

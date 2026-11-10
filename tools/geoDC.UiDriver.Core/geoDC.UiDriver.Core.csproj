@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The UI driver's logic that needs no UI Automation, such as argument parsing, do scripts, tree filtering and
+         diffing, output formatting, screenshot geometry, instance files and locks, the sample projects, rebuild
+         planning and the automation-convention audit.
+         It targets net10.0 so geoDC.UiDriver.Tests runs on any host. The net10.0-windows exe adds the code that
+         depends on FlaUI. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>geoDC.UiDriver</RootNamespace>
+    <!-- Public members carry XML documentation, and a missing or broken doc comment fails the build. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <WarningsAsErrors>$(WarningsAsErrors);CS1570;CS1572;CS1573;CS1574;CS1584;CS1591;CS1658;CS1734</WarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- source matches the text on screen against the strings files with the find-text tool's catalog and matcher. -->
+  <ItemGroup>
+    <ProjectReference Include="$(GeoDCToolsRoot)geoDC.FindText\geoDC.FindText.csproj" />
+  </ItemGroup>
+
+  <Import Project="ToolkitXaml.props" />
+
+</Project>
