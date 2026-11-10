@@ -64,7 +64,7 @@ The rules that apply to people and agents alike live in the human docs. Follow t
 
 ## Cloud sessions
 
-Cloud agent sessions (Claude Code, Codex) run in a disposable Ubuntu VM holding fresh clones of this harness and of geoDC; see `docs/cloud-sessions.md`. Start the session on the harness with `snt0/geodc` attached as a second repository; the session-start hook links it in as `geodc/`.
+Cloud agent sessions (Claude Code, Codex) run in a disposable Ubuntu VM holding fresh clones of this harness and of geoDC; see `docs/cloud-sessions.md`. Start the session on the harness with `snt0/geodc` attached as a second repository; the setup script and session-start hook link it in as `geodc/` and make the harness's settings and hooks load from the folder above both clones, where such a session starts.
 
 - Creating, moving, and deleting files inside the clones is routine there; nothing outside them matters once the session ends.
 - Never push `dev` or `main` (geoDC's or the harness's) from the cloud, and never force push or delete remote branches. Claude Code enforces this with a push guard hook; other agents must follow it by convention.

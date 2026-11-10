@@ -25,8 +25,9 @@ update `geodc/`. Start agents from the harness root, so they read `AGENTS.md` (`
 
 ## Cloud sessions
 
-Start a cloud session on this repository with `snt0/geodc` attached as a second repository. The session-start hook
-links `geodc/` to that clone; [`docs/cloud-sessions.md`](docs/cloud-sessions.md) covers the environment.
+Start a cloud session on this repository with `snt0/geodc` attached as a second repository. The environment's setup
+script (`dev/cloud-setup.sh`) links `geodc/` to that clone and makes the harness's settings and hooks load, since such
+a session starts in the folder above both clones; [`docs/cloud-sessions.md`](docs/cloud-sessions.md) covers the environment.
 
 ## Layout
 

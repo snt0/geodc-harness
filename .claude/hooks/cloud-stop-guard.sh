@@ -5,7 +5,10 @@
 [[ "$CLAUDE_CODE_REMOTE" == "true" ]] || exit 0
 input="$(cat)"
 [[ "$(jq -r '.stop_hook_active // false' <<<"$input")" == "true" ]] && exit 0
-cd "$CLAUDE_PROJECT_DIR" 2>/dev/null || exit 0
+# The harness root, found from this script's real path: with geoDC attached, the session starts in the
+# folder above the harness, whose .claude/hooks links here (dev/cloud-setup.sh), so CLAUDE_PROJECT_DIR is
+# not the harness.
+cd "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../.." || exit 0
 
 # The harness and its geoDC clone (geodc/) are separate repositories, so each is checked on its own.
 pending=()

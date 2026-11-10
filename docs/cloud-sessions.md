@@ -1,6 +1,6 @@
 # Cloud agent sessions
 
-Cloud agent sessions run a coding agent in a disposable Ubuntu VM with fresh clones of this harness and of geoDC. The session's repository is the harness, with `snt0/geodc` attached as a second repository; the harness works on geoDC through `geodc/`, which links to that clone (Claude Code's session-start hook does this) or is cloned there. This page covers what every agent needs from that environment and what a Linux session can and cannot verify. Agent-specific setup lives in:
+Cloud agent sessions run a coding agent in a disposable Ubuntu VM with fresh clones of this harness and of geoDC. The session's repository is the harness, with `snt0/geodc` attached as a second repository; the harness works on geoDC through `geodc/`, which links to that clone (Claude Code's setup script and session-start hook do this) or is cloned there. With both attached, Claude Code starts in the folder above the two clones; [cloud-sessions-claude.md](cloud-sessions-claude.md) > Where a two-repository session starts covers how the harness's settings still load. This page covers what every agent needs from that environment and what a Linux session can and cannot verify. Agent-specific setup lives in:
 
 - [Claude Code](cloud-sessions-claude.md): environment settings, repository hooks, branch naming.
 - [Codex](cloud-sessions-codex.md): environment settings.

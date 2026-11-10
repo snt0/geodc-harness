@@ -8,11 +8,19 @@ Configure the cloud environment at claude.ai/code > environment selector > edit:
 
 1. **Network access**: choose **Custom**, tick **Also include default list of common package managers**, and add `builds.dotnet.microsoft.com`.
 2. **Setup script**: paste the contents of [`dev/cloud-setup.sh`](../dev/cloud-setup.sh). The result is cached, so later sessions start with the toolchain on disk; editing the script or the allowed domains rebuilds the cache.
-3. **Repositories**: start sessions on `snt0/geodc-harness` and attach `snt0/geodc` as a second repository, so the session's git access covers both. The harness must be the session's own repository: its `.claude/` settings, hooks and skills only load from there. The two are cloned side by side; the session-start hook links `geodc/` to the geoDC clone.
+3. **Repositories**: start sessions on `snt0/geodc-harness` and attach `snt0/geodc` as a second repository, so the session's git access covers both. The two are cloned side by side (`/home/user/geodc-harness` and `/home/user/geodc`).
+
+### Where a two-repository session starts
+
+With two repositories attached, Claude Code starts in the folder that holds both clones (`/home/user`), not in the harness. It reads `CLAUDE.md` and skills from the harness all the same, but project settings come only from the starting folder's `.claude/`, so without help the harness's permissions and its hooks (session start, push guard, stop guard) do not load, and nothing warns about it.
+
+The setup script handles this in `link_harness`: when both clones are present it links `geodc-harness/geodc` to `../geodc`, deepens the geoDC clone, and links `/home/user/.claude/settings.json` and `/home/user/.claude/hooks` to the harness's own, so the same settings and hooks load from the parent. The hooks find the harness from their own real path rather than `CLAUDE_PROJECT_DIR`, which there is the parent. Paths in the settings that start `geodc/` resolve from either folder, because `/home/user/geodc` is the clone itself. A session on the harness alone starts inside it, and `link_harness` does nothing.
+
+If the session-start report (the `geoDC cloud session setup:` context) is missing, the hooks did not load: check that the environment's setup script matches `dev/cloud-setup.sh` and that `/home/user/.claude/settings.json` exists.
 
 ## What the repository configures
 
-`.claude/settings.json` registers these hooks; each script is a no-op outside the cloud (`CLAUDE_CODE_REMOTE` is `true` only there):
+`.claude/settings.json` registers these hooks, which a two-repository session loads through the links described above; each script is a no-op outside the cloud (`CLAUDE_CODE_REMOTE` is `true` only there):
 
 | Hook | Script | Cloud behaviour |
 | --- | --- | --- |
