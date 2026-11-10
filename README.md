@@ -37,7 +37,8 @@ a session starts in the folder above both clones; [`docs/cloud-sessions.md`](doc
 | `.agents/skills` | The canonical skills; `.claude/skills` is a generated mirror (`dev/sync-agent-skills.ps1 -Write`) |
 | `.claude/` | Claude Code settings and hooks: cloud session setup, the push guard, the stop guard |
 | `.codex/rules` | Codex command rules |
+| `.github/workflows` | `checks.yml` for the harness itself; `geodc-ci.yml`, geoDC's CI ([GitHub practices](docs/github-practices.md#ci)) |
 | `bootstrap.ps1`, `bootstrap.sh` | Clone or update `geodc/` and prepare it |
 | `dev/` | `cloud-setup.sh` (cloud VM toolchain), `capture-views.ps1` (app screenshot corpus), `capture-ds-previews.ps1` and `sync-design-system.ps1` ([design-system sync](docs/design-system-sync.md)), `sync-agent-skills.ps1` |
-| `docs/` | Cloud sessions for Claude Code and Codex, design-system sync, and `handoff/`: the investigation reports behind the handoff restructure |
+| `docs/` | Cloud sessions for Claude Code and Codex, geoDC's [GitHub practices](docs/github-practices.md) and [pull request template](docs/pull-request-template.md), design-system sync, and `handoff/`: the investigation reports behind the handoff restructure |
 | `geodc/` | geoDC, gitignored |
