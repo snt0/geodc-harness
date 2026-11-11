@@ -1,0 +1,14 @@
+# Opens the Sample gallery's blocking popup, pauses so a developer can look at it, then closes it.
+#
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 attach --target sample --launch --passive
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --interactive --format text --file dev/ui-scripts/sample-popup-manual-check.ui
+#
+# With --interactive, the pause step waits in a UI driver window until you press Continue or Fail. Without it, the
+# step is skipped and the script runs straight through. Works in passive mode, because the popup closes through its
+# footer.
+@target sample
+@var check=The popup is centred over the gallery, its footer buttons line up and the backdrop dims the page.
+
+run lib/sample-open-popup
+pause --message '${check}'
+run lib/sample-close-popup

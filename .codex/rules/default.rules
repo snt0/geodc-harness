@@ -3,18 +3,18 @@
 # Keep this list narrow: mutating Git operations and arbitrary PowerShell remain approval-gated.
 
 prefix_rule(
-    pattern=["pwsh", "-NoProfile", "-WorkingDirectory", "geodc", "-File", "geodc/dev/ui.ps1"],
+    pattern=["pwsh", "-NoProfile", "-WorkingDirectory", "geodc", "-File", "dev/ui.ps1"],
     decision="allow",
-    justification="geoDC's UI driver, run from inside geodc/ so its lease and fixtures resolve there, is the approved UI Automation entry point and owns only its worktree-local leased process.",
+    justification="The harness's geoDC UI driver shim, run with geodc/ as its working directory, is the approved UI Automation entry point. It keeps its instance file and sample projects in the harness and acts only on the instance it launched from this checkout.",
     match=[
-        "pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 attach --target sample --launch",
-        "pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 tree --target sample --depth 4",
-        "pwsh -NoProfile -WorkingDirectory geodc -File geodc/dev/ui.ps1 do --target sample scroll --id SampleScrollViewer --direction down ++ tree --id SampleScrollViewer",
+        "pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 attach --target sample --launch",
+        "pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 tree --target sample --depth 4",
+        "pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --target sample scroll --id SampleScrollViewer --direction down ++ tree --id SampleScrollViewer",
     ],
     not_match=[
         "pwsh -NoProfile -File dev/capture-views.ps1",
-        "pwsh -NoProfile -Command geodc/dev/ui.ps1 tree --target sample",
-        "pwsh -NoProfile -File geodc/dev/ui.ps1 tree --target sample",
+        "pwsh -NoProfile -Command dev/ui.ps1 tree --target sample",
+        "pwsh -NoProfile -File dev/ui.ps1 tree --target sample",
     ],
 )
 

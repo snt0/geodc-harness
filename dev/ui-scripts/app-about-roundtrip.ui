@@ -1,0 +1,17 @@
+# Opens Help > About, checks the version, build and runtime lines, and closes it with its Close button.
+#
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 attach --launch --project dev/sample-projects/sample.gdcproj
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/app-about-roundtrip.ui
+#
+# Passive-safe: closes with the footer button rather than Escape.
+@target app
+
+click --id HelpMenuButton
+click --id AboutButton
+wait --id AboutPopup
+assert --id AboutVersionText
+assert --id AboutBuildText
+assert --id AboutRuntimeText
+click --id CloseButton --scope AboutPopup
+wait --id AboutPopup --gone
+assert --id AboutPopup --gone

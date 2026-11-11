@@ -1,0 +1,9 @@
+<Project>
+  <!-- geoDC's central package versions, so the harness's projects and the geoDC projects they reference restore the
+       same packages. Packages only the harness uses are added below. Directory.Build.props sets GeoDCCloneRoot. -->
+  <Import Project="$(GeoDCCloneRoot)Directory.Packages.props" />
+
+  <ItemGroup>
+    <PackageVersion Include="FlaUI.UIA3" Version="5.0.0" />
+  </ItemGroup>
+</Project>

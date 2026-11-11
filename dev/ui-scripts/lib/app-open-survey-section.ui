@@ -1,0 +1,15 @@
+# State: the Survey page shows the section named by `section`.
+# Vars: section (default FeaturesTab) = FrameTab, FeaturesTab, SensorsTab or GroupsTab.
+# Passive-safe: no `key` steps. Each section shares the 3-D viewport, a WebView2 chart; this script does not
+#       wait for it to render (VrfChartSurfacePanel, with a long timeout, is the rendered anchor).
+#
+#   run lib/app-open-survey-section section=SensorsTab
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/lib/app-open-survey-section.ui --var section=SensorsTab
+@target app
+@var section=FeaturesTab
+
+run lib/app-goto-page page=SurveyTab
+wait --id SurveyPage
+click --id ${section}
+wait --id ${section} --selected
+assert --id ${section} --selected

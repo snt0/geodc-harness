@@ -25,3 +25,56 @@ jobs:
         run: |
           for f in .claude/hooks/*.sh bootstrap.sh dev/*.sh; do bash -n "$f"; done
           jq empty .claude/settings.json
+
+  harness-tools:
+    # The UI driver and the gallery corpus tool build against geoDC's dev, with its settings
+    # (docs/ui-driver.md > Building the harness tools). The driver's tests run anywhere; the corpus
+    # tests render the Sample gallery, so only Windows runs them.
+    name: Harness tools (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            tests: tests/geoDC.UiDriver.Tests
+            lfs: false
+          - os: windows-2022
+            tests: geodc-harness.slnx
+            # The brand SVGs live in Git LFS, and the Sample gallery's specimens show them.
+            lfs: true
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Needs the GEODC_TOKEN secret with Contents: read on the geoDC repository, as geodc-ci.yml does.
+      - name: Check out geoDC
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.GEODC_REPOSITORY || 'snt0/geodc' }}
+          ref: dev
+          token: ${{ secrets.GEODC_TOKEN }}
+          path: geodc
+          # Full history is required for Nerdbank.GitVersioning, which versions the geoDC projects referenced here.
+          fetch-depth: 0
+          lfs: ${{ matrix.lfs }}
+
+      - name: Check .editorconfig and nuget.config match geoDC's
+        shell: bash
+        run: |
+          cmp .editorconfig geodc/.editorconfig
+          cmp nuget.config geodc/nuget.config
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: geodc/global.json
+
+      - name: Build
+        run: >-
+          dotnet build geodc-harness.slnx --configuration Release
+          -p:GeoDCStrictCodeStyle=true -p:GeoDCSkipTypstFetch=true
+
+      - name: Test
+        run: dotnet test ${{ matrix.tests }} --configuration Release --no-build

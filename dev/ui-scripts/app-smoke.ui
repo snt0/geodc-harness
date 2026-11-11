@@ -1,0 +1,17 @@
+# Smoke check for the app: the shell, its page tabs and the Help menu are there, and the Landing page shows.
+#
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 attach --launch --project dev/sample-projects/sample.gdcproj
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/app-smoke.ui
+#
+# Passive-safe: no `key` steps. Run it first after a rebuild to confirm the app came up.
+@target app
+
+run lib/app-goto-page page=LandingTab
+assert --id SetupTab --exists
+assert --id SurveyTab --exists
+assert --id CalibrationTab --exists
+assert --id VerificationTab --exists
+assert --id ShoreControlTab --exists
+assert --id GnssTab --exists
+assert --id ReportsTab --exists
+assert --id HelpMenuButton --enabled

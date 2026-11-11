@@ -1,7 +1,7 @@
 # geodc-harness
 
-The agent harness for [geoDC](https://github.com/snt0/geodc): the instructions, skills, settings, hooks and scripts
-that Claude Code and Codex use to work on geoDC. geoDC itself is a separate repository, cloned into `geodc/` and
+The agent harness for [geoDC](https://github.com/snt0/geodc): the instructions, skills, settings, hooks, scripts and
+tools (the UI driver among them) that Claude Code and Codex use to work on geoDC. geoDC itself is a separate repository, cloned into `geodc/` and
 gitignored here, so the product repository holds only the product.
 
 ## Getting started
@@ -14,6 +14,7 @@ git clone https://github.com/snt0/geodc-harness
 cd geodc-harness
 pwsh -NoProfile -File bootstrap.ps1     # or: bash bootstrap.sh
 dotnet build geodc/geoDC.slnx
+dotnet build geodc-harness.slnx         # the harness's own tools, built against geodc/
 ```
 
 The bootstrap clones `snt0/geodc` into `geodc/` on `dev`, or fast-forwards it when it is already there on a clean
@@ -39,6 +40,8 @@ a session starts in the folder above both clones; [`docs/cloud-sessions.md`](doc
 | `.codex/rules` | Codex command rules |
 | `.github/workflows` | `checks.yml` for the harness itself; `geodc-ci.yml`, geoDC's CI ([GitHub practices](docs/github-practices.md#ci)) |
 | `bootstrap.ps1`, `bootstrap.sh` | Clone or update `geodc/` and prepare it |
-| `dev/` | `cloud-setup.sh` (cloud VM toolchain), `capture-views.ps1` (app screenshot corpus), `capture-ds-previews.ps1` and `sync-design-system.ps1` ([design-system sync](docs/design-system-sync.md)), `sync-agent-skills.ps1` |
-| `docs/` | Cloud sessions for Claude Code and Codex, geoDC's [GitHub practices](docs/github-practices.md) and [pull request template](docs/pull-request-template.md), design-system sync, [writing](docs/writing.md) comments and docs, [code vocabulary](docs/code-vocabulary.md) (naming roles and AutomationId roles), `design/`: dated geoDC design records that open issues cite, and `handoff/`: the investigation reports behind the handoff restructure |
+| `tools/`, `tests/`, `geodc-harness.slnx` | The [UI driver](docs/ui-driver.md) (`geoDC.UiDriver`, `geoDC.UiDriver.Core`) and the gallery screenshot corpus tool (`geoDC.GalleryCorpus`, [design-system sync](docs/design-system-sync.md#screenshot-corpus)), with their tests |
+| `Directory.Build.*`, `Directory.Packages.props`, `.editorconfig` | Build the harness's projects with geoDC's settings and package versions; `.editorconfig` is a copy of geoDC's |
+| `dev/` | `ui.ps1` and `ui-scripts/` (the UI driver's shim and scripts), `cloud-setup.sh` (cloud VM toolchain), `capture-views.ps1` (app screenshot corpus), `capture-ds-previews.ps1` and `sync-design-system.ps1` ([design-system sync](docs/design-system-sync.md)), `sync-agent-skills.ps1` |
+| `docs/` | The [UI driver](docs/ui-driver.md), cloud sessions for Claude Code and Codex, geoDC's [GitHub practices](docs/github-practices.md) and [pull request template](docs/pull-request-template.md), design-system sync, [writing](docs/writing.md) comments and docs, [code vocabulary](docs/code-vocabulary.md) (naming roles and AutomationId roles), `design/`: dated geoDC design records that open issues cite, and `handoff/`: the investigation reports behind the handoff restructure |
 | `geodc/` | geoDC, gitignored |

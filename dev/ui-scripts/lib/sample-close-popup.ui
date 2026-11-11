@@ -1,0 +1,11 @@
+# State: no popup is open in the Sample gallery. Closes the open popup with its footer Cancel button, and fails if
+#        none is open.
+# Vars: none.
+# Passive-safe: no `key` steps. Closing with Escape instead needs an active launch.
+#
+#   run lib/sample-close-popup
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --target sample --file dev/ui-scripts/lib/sample-close-popup.ui
+@target sample
+
+click --id CancelButton --scope PopupFooterPanel --await-gone PopupPanel
+assert --id PopupPanel --gone

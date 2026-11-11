@@ -1,0 +1,14 @@
+# State: the Shore Control page shows the active job's Shore Control `set`, with its points listed.
+# Vars: set (default Quayside control 2026) = the Shore Control's exact name as the job uses it.
+# Passive-safe: no `key` steps. The page shows only the active job's copy; to look at another job's set,
+#       run lib/app-select-job first.
+#
+#   run lib/app-open-shore-control set='Quayside control 2026'
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/lib/app-open-shore-control.ui --var "set=Quayside control 2026"
+@target app
+@var set=Quayside control 2026
+
+run lib/app-goto-page page=ShoreControlTab
+wait --id PointCanvasPanel
+assert --id ShoreControlStatusText --name '${set}' --timeout 3
+assert --id PointCanvasPanel

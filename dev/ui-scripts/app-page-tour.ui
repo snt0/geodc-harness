@@ -1,0 +1,25 @@
+# Visits every top-level page and takes a screenshot of the main window on each, under .ui-driver/screenshots/.
+#
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 attach --launch --project dev/sample-projects/sample.gdcproj
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/app-page-tour.ui --format text --report .ui-driver/reports/tour.md
+#
+# Passive-safe: no `key` steps. The active job is whichever the app activated on load (the sample project's first job).
+@target app
+
+run lib/app-goto-page page=LandingTab
+screenshot --main-window --out .ui-driver/screenshots/tour-landing.png
+run lib/app-goto-page page=SetupTab
+screenshot --main-window --out .ui-driver/screenshots/tour-setup.png
+run lib/app-goto-page page=SurveyTab
+screenshot --main-window --out .ui-driver/screenshots/tour-survey.png
+run lib/app-goto-page page=CalibrationTab
+screenshot --main-window --out .ui-driver/screenshots/tour-calibration.png
+run lib/app-goto-page page=VerificationTab
+screenshot --main-window --out .ui-driver/screenshots/tour-verification.png
+run lib/app-goto-page page=ShoreControlTab
+screenshot --main-window --out .ui-driver/screenshots/tour-shore-control.png
+run lib/app-goto-page page=GnssTab
+screenshot --main-window --out .ui-driver/screenshots/tour-gnss.png
+run lib/app-goto-page page=ReportsTab
+screenshot --main-window --out .ui-driver/screenshots/tour-reports.png
+assert --id ReportsTab --selected

@@ -153,3 +153,11 @@ runs its checks against a geoDC branch, tag or commit:
   it, so every other run can read it.
 - It can only reach geoDC while geoDC is on GitHub. Once the repository moves, point `GEODC_REPOSITORY` and the
   checkout at the new host or retire the workflow.
+
+The harness's own [`.github/workflows/checks.yml`](../.github/workflows/checks.yml) runs on every harness pull request
+and push to `main`. It checks the `.claude/skills` mirror, the hook scripts and `settings.json`. Its **Harness tools**
+jobs check out geoDC's `dev` into `geodc/` with the same `GEODC_TOKEN` secret, check that `.editorconfig` matches
+geoDC's, and build `geodc-harness.slnx` with strict code style. The Ubuntu job runs `tests/geoDC.UiDriver.Tests`, and
+the Windows job runs every harness test, `tests/geoDC.GalleryCorpus.Tests` included. A geoDC change can break these
+tests, for example by renaming an AutomationId the driver's convention lists mirror, and they run against `dev` only,
+so run them locally on a geoDC branch that touches the UI.

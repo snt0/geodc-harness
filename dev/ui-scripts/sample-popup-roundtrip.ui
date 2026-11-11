@@ -1,0 +1,15 @@
+# Opens a blocking popup in the Sample gallery and closes it with Escape.
+#
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 attach --target sample --launch
+#   pwsh -NoProfile -WorkingDirectory geodc -File dev/ui.ps1 do --file dev/ui-scripts/sample-popup-roundtrip.ui
+#
+# Needs an active launch, because the Escape step uses `key`, which passive mode refuses. Opening comes from
+# lib/sample-open-popup. To close in passive mode, use lib/sample-close-popup, which presses the Cancel button.
+@target sample
+
+run lib/sample-goto-page nav=OverlaysNavItem
+assert --id PopupPanel --gone
+run lib/sample-open-popup
+assert --id PopupPanel
+key --keys Escape --await-gone PopupPanel
+assert --id PopupPanel --gone
